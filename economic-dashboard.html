@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Economic Dashboard | LIHTC Analytics Hub</title>
+  <meta name="description" content="Real-time economic indicators from FRED including construction costs, labor markets, housing starts, and key financial metrics affecting affordable housing development.">
+
+  <!-- Theme (shim keeps backward compatibility) -->
+  <link rel="stylesheet" href="unified-theme.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/responsive-nav.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- App config (FRED key lives here) -->
+  <script src="js/config.js"></script>
+
+  <!-- Navigation (root shim loads /js/navigation.js + /js/responsive-nav.js) -->
+  <script src="navigation.js" defer></script>
+
+  <style>
+    /* Match the cleaner, modern look used on your economic-dashboard-2 page */
+    :root { color-scheme: light dark; }
+    body { background: var(--page-bg, #0b0f14); color: var(--text-primary, #e5e7eb); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 28px 18px 60px; }
+    .hero h1 { margin: 6px 0 8px; font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1.15; }
+    .hero p { margin: 0; color: var(--text-secondary, rgba(229,231,235,.75)); max-width: 70ch; }
+    .fred-bar { margin-top: 18px; padding: 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(17,24,39,.75); }
+    .fred-row { display:flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .fred-row label { font-weight: 700; }
+    .fred-row input { flex: 1 1 260px; min-width: 220px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.2); color: inherit; }
+    .fred-row button { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; }
+    .fred-row button:hover { background: rgba(255,255,255,.10); }
+    .status { margin-top: 10px; color: var(--text-secondary, rgba(229,231,235,.75)); font-size: .95rem; }
+    .stats { display:grid; grid-template-columns: repeat(12,1fr); gap: 14px; margin-top: 18px; }
+    .stat { grid-column: span 12; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 14px; background: rgba(17,24,39,.75); }
+    .stat .num { font-weight: 800; font-size: 1.5rem; margin: 0; }
+    .stat .lbl { margin: 4px 0 0; color: var(--text-secondary, rgba(229,231,235,.75)); }
+    @media (min-width: 720px){ .stat { grid-column: span 3; } }
+
+    .section { margin-top: 18px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(17,24,39,.75); padding: 16px; }
+    .section h2 { margin: 0 0 6px; font-size: 1.25rem; }
+    .section p { margin: 0 0 12px; color: var(--text-secondary, rgba(229,231,235,.75)); }
+
+    .cards { display:grid; grid-template-columns: repeat(12,1fr); gap: 14px; }
+    .card { grid-column: span 12; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(0,0,0,.16); padding: 14px; }
+    @media (min-width: 980px){ .card { grid-column: span 6; } }
+    .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .card .meta { display:flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+    .kpi { font-weight: 800; font-size: 1.2rem; }
+    .kpi-sub { color: var(--text-secondary, rgba(229,231,235,.75)); font-size: .95rem; }
+    .chart-wrap { margin-top: 10px; height: 220px; }
+    canvas { width: 100% !important; height: 100% !important; }
+    .error { color: #fecaca; margin-top: 8px; }
+    .note { margin-top: 14px; color: var(--text-secondary, rgba(229,231,235,.75)); font-size: .95rem; }
+    a { color: var(--accent, #93c5fd); text-decoration: underline; text-underline-offset: 2px; }
+  </style>
+</head>
+
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <header class="hero">
+      <h1>Economic Dashboard</h1>
+      <p>Real-time economic indicators from the Federal Reserve Economic Data (FRED) that affect affordable housing development: construction costs, labor markets, housing activity, and key financial conditions.</p>
+    </header>
+
+    <section class="fred-bar" aria-label="FRED connection">
+      <div class="fred-row">
+        <label for="fredKey">FRED API Key</label>
+        <input id="fredKey" type="password" placeholder="Paste your FRED API key (stored locally in your browser)" autocomplete="off" />
+        <button id="saveKey" type="button">Save</button>
+        <button id="clearKey" type="button">Clear</button>
+        <button id="refresh" type="button">Refresh Data</button>
+      </div>
+      <div class="status" id="fredStatus">Checking connection…</div>
+    </section>
+
+    <section class="stats" aria-label="Summary stats">
+      <div class="stat"><p class="num" id="statIndicators">—</p><p class="lbl">Key Indicators</p></div>
+      <div class="stat"><p class="num">FRED</p><p class="lbl">Data Source</p></div>
+      <div class="stat"><p class="num" id="statUpdated">—</p><p class="lbl">Last Updated</p></div>
+      <div class="stat"><p class="num">Monthly</p><p class="lbl">Update Frequency</p></div>
+    </section>
+
+    <section class="section">
+      <h2>Construction Costs</h2>
+      <p>Producer price indices (PPI) and construction inputs that drive hard costs.</p>
+      <div class="cards" id="constructionCards"></div>
+    </section>
+
+    <section class="section">
+      <h2>Labor Market</h2>
+      <p>Wages, employment, and labor force measures tied to contractor capacity and pricing.</p>
+      <div class="cards" id="laborCards"></div>
+    </section>
+
+    <section class="section">
+      <h2>Housing Market</h2>
+      <p>Starts, permits, and housing price indicators shaping feasibility and pipeline risk.</p>
+      <div class="cards" id="housingCards"></div>
+    </section>
+
+    <section class="section">
+      <h2>Financial &amp; Economic</h2>
+      <p>Interest rates, inflation, and broader economic conditions influencing equity pricing and debt sizing.</p>
+      <div class="cards" id="financialCards"></div>
+    </section>
+
+    <p class="note">
+      Data source: <a href="https://fred.stlouisfed.org/" target="_blank" rel="noopener">Federal Reserve Economic Data (FRED)</a>, Federal Reserve Bank of St. Louis.
+      If charts fail to load, check the browser console for API errors (invalid key, rate limits, or network blocks).
+    </p>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script>
+    // --- FRED + Chart rendering (robust, no "stuck loading") ---
+    const FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations";
+    const DEFAULT_LIMIT = 60; // show 5 years monthly if available
+
+    const SERIES = {
+      construction: [
+        { id: "WPUIP2311001", name: "PPI: Construction Materials", unit: "Index", freq: "Monthly" },
+        { id: "WPU10210501",  name: "PPI: Lumber & Wood Products", unit: "Index", freq: "Monthly" },
+        { id: "PCU327320327320", name: "PPI: Ready-Mix Concrete", unit: "Index", freq: "Monthly" },
+        { id: "WPU1017", name: "PPI: Steel Mill Products", unit: "Index", freq: "Monthly" }
+      ],
+      labor: [
+        { id: "CES2000000003", name: "Construction Avg Hourly Earnings", unit: "USD", freq: "Monthly" },
+        { id: "UNRATE", name: "Unemployment Rate", unit: "%", freq: "Monthly" },
+        { id: "CIVPART", name: "Labor Force Participation", unit: "%", freq: "Monthly" },
+        { id: "PAYEMS", name: "Total Nonfarm Payrolls", unit: "Thousands", freq: "Monthly" }
+      ],
+      housing: [
+        { id: "HOUST", name: "Housing Starts", unit: "Thousands", freq: "Monthly" },
+        { id: "PERMIT", name: "Building Permits", unit: "Thousands", freq: "Monthly" },
+        { id: "CSUSHPINSA", name: "Case-Shiller National HPI", unit: "Index", freq: "Monthly" },
+        { id: "MSPUS", name: "Median Sales Price (US)", unit: "USD", freq: "Quarterly" }
+      ],
+      financial: [
+        { id: "DGS10", name: "10-Year Treasury", unit: "%", freq: "Daily" },
+        { id: "MORTGAGE30US", name: "30-Year Mortgage Rate", unit: "%", freq: "Weekly" },
+        { id: "CPIAUCSL", name: "CPI (All Urban Consumers)", unit: "Index", freq: "Monthly" },
+        { id: "GDPC1", name: "Real GDP", unit: "Billions", freq: "Quarterly" }
+      ]
+    };
+
+    const els = {
+      fredKey: document.getElementById("fredKey"),
+      saveKey: document.getElementById("saveKey"),
+      clearKey: document.getElementById("clearKey"),
+      refresh: document.getElementById("refresh"),
+      status: document.getElementById("fredStatus"),
+      statIndicators: document.getElementById("statIndicators"),
+      statUpdated: document.getElementById("statUpdated"),
+      constructionCards: document.getElementById("constructionCards"),
+      laborCards: document.getElementById("laborCards"),
+      housingCards: document.getElementById("housingCards"),
+      financialCards: document.getElementById("financialCards")
+    };
+
+    const charts = new Map(); // seriesId -> Chart instance
+
+    function getConfiguredKey(){
+      const fromLocal = localStorage.getItem("FRED_API_KEY") || "";
+      const fromConfig = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : "";
+      return (fromLocal || fromConfig || "").trim();
+    }
+
+    function setStatus(msg){ els.status.textContent = msg; }
+
+    function formatNumber(x){
+      if (!isFinite(x)) return "—";
+      const abs = Math.abs(x);
+      if (abs >= 1e9) return (x/1e9).toFixed(2) + "B";
+      if (abs >= 1e6) return (x/1e6).toFixed(2) + "M";
+      if (abs >= 1e3) return (x/1e3).toFixed(2) + "K";
+      return x.toFixed(2);
+    }
+
+    function computeYoY(series){
+      // Compare most recent value to value 12 periods back (if possible).
+      if (!series || series.length < 13) return null;
+      const latest = series[series.length - 1].value;
+      const prior = series[series.length - 13].value;
+      if (!isFinite(latest) || !isFinite(prior) || prior === 0) return null;
+      return ((latest - prior) / prior) * 100;
+    }
+
+    function buildCard(targetEl, meta){
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${meta.name}</h3>
+        <div class="meta">
+          <div class="kpi" id="kpi-${meta.id}">Loading…</div>
+          <div class="kpi-sub" id="sub-${meta.id}">${meta.unit} • ${meta.freq}</div>
+        </div>
+        <div class="chart-wrap"><canvas id="c-${meta.id}" aria-label="${meta.name} chart"></canvas></div>
+        <div class="error" id="err-${meta.id}" style="display:none;"></div>
+      `;
+      targetEl.appendChild(card);
+    }
+
+    function ensureCards(){
+      els.constructionCards.innerHTML = "";
+      els.laborCards.innerHTML = "";
+      els.housingCards.innerHTML = "";
+      els.financialCards.innerHTML = "";
+
+      SERIES.construction.forEach(m => buildCard(els.constructionCards, m));
+      SERIES.labor.forEach(m => buildCard(els.laborCards, m));
+      SERIES.housing.forEach(m => buildCard(els.housingCards, m));
+      SERIES.financial.forEach(m => buildCard(els.financialCards, m));
+    }
+
+    async function fetchFREDSeries(seriesId, apiKey, limit=DEFAULT_LIMIT){
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      const url = `${FRED_BASE_URL}?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(apiKey)}&file_type=json&sort_order=asc&limit=${limit}`;
+      try{
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok){
+          const txt = await res.text().catch(()=> "");
+          throw new Error(`FRED request failed (${res.status}) ${txt ? "- " + txt.slice(0,120) : ""}`);
+        }
+        const data = await res.json();
+        const obs = (data && data.observations) ? data.observations : [];
+        return obs
+          .map(o => ({ date: o.date, value: parseFloat(o.value) }))
+          .filter(p => isFinite(p.value));
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function renderChart(seriesId, labels, values){
+      const ctx = document.getElementById("c-" + seriesId).getContext("2d");
+      const existing = charts.get(seriesId);
+      if (existing) existing.destroy();
+
+      const chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: seriesId,
+            data: values,
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.25
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { intersect: false, mode: "index" } },
+          scales: {
+            x: { ticks: { maxTicksLimit: 6 }, grid: { display: false } },
+            y: { ticks: { maxTicksLimit: 6 }, grid: { color: "rgba(255,255,255,.08)" } }
+          }
+        }
+      });
+
+      charts.set(seriesId, chart);
+    }
+
+    function setCardError(seriesId, message){
+      const err = document.getElementById("err-" + seriesId);
+      err.style.display = "block";
+      err.textContent = message;
+      document.getElementById("kpi-" + seriesId).textContent = "—";
+    }
+
+    function clearCardError(seriesId){
+      const err = document.getElementById("err-" + seriesId);
+      err.style.display = "none";
+      err.textContent = "";
+    }
+
+    async function loadAll(){
+      ensureCards();
+
+      const apiKey = getConfiguredKey();
+      els.fredKey.value = localStorage.getItem("FRED_API_KEY") ? localStorage.getItem("FRED_API_KEY") : "";
+
+      const allSeries = [...SERIES.construction, ...SERIES.labor, ...SERIES.housing, ...SERIES.financial];
+      els.statIndicators.textContent = String(allSeries.length);
+
+      if (!apiKey){
+        setStatus("Not connected: add a FRED API key to load live charts (stored locally in your browser).");
+        // still render placeholders; nothing else to do
+        return;
+      }
+
+      setStatus("Connected. Loading live data from FRED…");
+      const startedAt = new Date();
+
+      // Fetch sequentially to reduce rate-limit risk on some networks
+      for (const meta of allSeries){
+        try{
+          clearCardError(meta.id);
+          const series = await fetchFREDSeries(meta.id, apiKey);
+          if (!series || series.length === 0){
+            throw new Error("No observations returned (check series id or API key).");
+          }
+          const latest = series[series.length - 1];
+          const yoy = computeYoY(series);
+          const kpiEl = document.getElementById("kpi-" + meta.id);
+          kpiEl.textContent = (meta.unit === "%")
+            ? `${latest.value.toFixed(2)}%`
+            : `${formatNumber(latest.value)}${meta.unit === "USD" ? "" : ""}`;
+
+          const subEl = document.getElementById("sub-" + meta.id);
+          const yoyText = (yoy === null) ? "YoY: —" : `YoY: ${yoy >= 0 ? "+" : ""}${yoy.toFixed(1)}%`;
+          subEl.textContent = `${meta.unit} • ${meta.freq} • ${yoyText}`;
+
+          const labels = series.map(p => p.date);
+          const values = series.map(p => p.value);
+          renderChart(meta.id, labels, values);
+
+        } catch (e){
+          setCardError(meta.id, e && e.message ? e.message : "Failed to load series.");
+          console.error("FRED error", meta.id, e);
+        }
+      }
+
+      const finishedAt = new Date();
+      els.statUpdated.textContent = finishedAt.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+      const secs = Math.round((finishedAt - startedAt) / 1000);
+      setStatus(`Connected. Loaded live data in ~${secs}s. (If any cards show errors, open DevTools → Console.)`);
+    }
+
+    // UI handlers
+    els.saveKey.addEventListener("click", () => {
+      const k = (els.fredKey.value || "").trim();
+      if (!k){
+        localStorage.removeItem("FRED_API_KEY");
+        setStatus("Cleared stored key.");
+      } else {
+        localStorage.setItem("FRED_API_KEY", k);
+        setStatus("Saved key locally. Refreshing…");
+      }
+      loadAll();
+    });
+
+    els.clearKey.addEventListener("click", () => {
+      els.fredKey.value = "";
+      localStorage.removeItem("FRED_API_KEY");
+      setStatus("Cleared stored key.");
+      loadAll();
+    });
+
+    els.refresh.addEventListener("click", () => {
+      setStatus("Refreshing…");
+      loadAll();
+    });
+
+    // boot
+    loadAll();
+  </script>
+</body>
+</html>
