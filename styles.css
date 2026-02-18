@@ -1,4 +1,0 @@
-/* Shim for backward compatibility.
-   Prefer /css/styles.css going forward.
-*/
-@import url("css/styles.css");
