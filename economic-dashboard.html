@@ -114,7 +114,7 @@
   <!-- Chart.js (client-side) -->
   <script src="js/config.js"></script>
   <script src="js/api-config-wrapper.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <!-- Navigation (mimics HousingMetrics style) -->
@@ -315,53 +315,34 @@ function getKey(){ return CONFIG_KEY || ""; }
     return "→";
   }
 
-  // FRED API does not send Access-Control-Allow-Origin, so direct fetch() is blocked
-  // by the browser (CORS). We use JSONP instead — FRED supports &callback= natively.
-  function fetchFRED(seriesId, apiKey, limit=84){
-    return new Promise((resolve, reject) => {
-      const cbName = "fredCb_" + seriesId.replace(/[^a-zA-Z0-9]/g,"_") + "_" + Date.now();
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error(seriesId + " timed out"));
-      }, 15000);
+  // FRED API blocks browser fetch() with CORS. We route through fred.libhack.so,
+  // a free public CORS proxy for FRED data (no API key needed on this endpoint).
+  async function fetchFRED(seriesId, apiKey, limit=84){
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-      function cleanup(){
-        clearTimeout(timer);
-        delete window[cbName];
-        const el = document.getElementById(cbName);
-        if (el) el.remove();
-      }
+    const url = new URL("https://fred.libhack.so/v0/observations");
+    url.searchParams.set("series_id", seriesId);
+    url.searchParams.set("observation_start", "2019-01-01");
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("sort_order", "asc");
 
-      window[cbName] = function(data){
-        cleanup();
-        try {
-          const obs = (data && data.observations) ? data.observations : [];
-          const cleaned = obs
-            .filter(o => o && o.value !== "." && o.value !== null && o.date)
-            .map(o => ({date: o.date, value: Number(o.value)}))
-            .filter(o => isFinite(o.value));
-          if (!cleaned.length) throw new Error(seriesId + " no observations");
-          resolve(cleaned);
-        } catch(e) {
-          reject(e);
-        }
-      };
+    try{
+      const res = await fetch(url.toString(), {signal: controller.signal});
+      if (!res.ok) throw new Error(seriesId + " HTTP " + res.status);
+      const data = await res.json();
+      // Proxy returns [{date, value}] directly
+      const obs = Array.isArray(data) ? data : (data.observations || []);
+      const cleaned = obs
+        .filter(o => o && o.value !== "." && o.value !== null && o.date)
+        .map(o => ({date: o.date, value: Number(o.value)}))
+        .filter(o => isFinite(o.value));
 
-      const url = new URL("https://api.stlouisfed.org/fred/series/observations");
-      url.searchParams.set("series_id", seriesId);
-      url.searchParams.set("api_key", apiKey);
-      url.searchParams.set("file_type", "json");
-      url.searchParams.set("sort_order", "asc");
-      url.searchParams.set("observation_start", "2019-01-01");
-      url.searchParams.set("limit", String(limit));
-      url.searchParams.set("callback", cbName);
-
-      const script = document.createElement("script");
-      script.id = cbName;
-      script.src = url.toString();
-      script.onerror = function(){ cleanup(); reject(new Error(seriesId + " script load failed")); };
-      document.head.appendChild(script);
-    });
+      if (!cleaned.length) throw new Error(seriesId + " no observations");
+      return cleaned;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   function buildMetricCard(ind){

@@ -10,7 +10,7 @@
 <link href="unified-theme.css" rel="stylesheet"/>
 <script src="js/config.js"></script>
   <script src="js/api-config-wrapper.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 
 
 <style>
@@ -568,53 +568,39 @@
         };
         
         // Fetch data from FRED (with mock data fallback)
-        // FRED API does not send Access-Control-Allow-Origin, so direct fetch() is blocked
-        // by the browser (CORS). We use JSONP instead — FRED supports &callback= natively.
-        function fetchFREDData(seriesId, limit) {
+        // FRED API blocks browser fetch() with CORS. We route through fred.libhack.so,
+        // a free public CORS proxy for FRED data (no API key needed on this endpoint).
+        async function fetchFREDData(seriesId, limit) {
             limit = limit || 84;
-            return new Promise(function(resolve, reject) {
-                var cbName = "fredCb_" + seriesId.replace(/[^a-zA-Z0-9]/g,"_") + "_" + Date.now();
-                var timer = setTimeout(function() {
-                    cleanup();
-                    reject(new Error(seriesId + " timed out"));
-                }, 15000);
+            const controller = new AbortController();
+            const timeout = setTimeout(function(){ controller.abort(); }, 15000);
 
-                function cleanup() {
-                    clearTimeout(timer);
-                    delete window[cbName];
-                    var el = document.getElementById(cbName);
-                    if (el) el.remove();
+            const url = "https://fred.libhack.so/v0/observations" +
+                "?series_id=" + encodeURIComponent(seriesId) +
+                "&observation_start=2019-01-01" +
+                "&limit=" + limit +
+                "&sort_order=asc";
+
+            try {
+                const response = await fetch(url, {signal: controller.signal});
+                if (!response.ok) {
+                    throw new Error(seriesId + " HTTP " + response.status);
                 }
-
-                window[cbName] = function(data) {
-                    cleanup();
-                    try {
-                        var obs = (data && data.observations) ? data.observations : [];
-                        var rows = obs
-                            .filter(function(o){ return o && o.value !== "." && o.value !== null && o.value !== undefined; })
-                            .reverse()
-                            .map(function(o){ return { date: o.date, value: parseFloat(o.value) }; })
-                            .filter(function(d){ return isFinite(d.value); });
-                        if (!rows.length) throw new Error(seriesId + " no observations");
-                        resolve(rows);
-                    } catch(e) {
-                        reject(e);
-                    }
-                };
-
-                var url = "https://api.stlouisfed.org/fred/series/observations" +
-                    "?series_id=" + encodeURIComponent(seriesId) +
-                    "&api_key=" + encodeURIComponent(FRED_API_KEY) +
-                    "&file_type=json&sort_order=desc&observation_start=2019-01-01" +
-                    "&limit=" + limit +
-                    "&callback=" + cbName;
-
-                var script = document.createElement("script");
-                script.id = cbName;
-                script.src = url;
-                script.onerror = function(){ cleanup(); reject(new Error(seriesId + " script load failed")); };
-                document.head.appendChild(script);
-            });
+                const data = await response.json();
+                // Proxy returns [{date, value}] directly
+                const obs = Array.isArray(data) ? data : (data.observations || []);
+                const rows = obs
+                    .filter(function(o){ return o && o.value !== "." && o.value !== null && o.value !== undefined; })
+                    .map(function(o){ return { date: o.date, value: parseFloat(o.value) }; })
+                    .filter(function(d){ return isFinite(d.value); });
+                if (!rows.length) throw new Error(seriesId + " no observations");
+                return rows;
+            } catch(error) {
+                console.error("Error fetching " + seriesId + ":", error);
+                return [];
+            } finally {
+                clearTimeout(timeout);
+            }
         }
         
         // Generate realistic mock data
