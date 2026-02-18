@@ -4,8 +4,7 @@
 // Version: 1.0 - February 2026
 
 const FREDCommodities = {
-    apiKey: '00f51491752bdb81cfe7f7524ac63da8', // Get free at: https://research.stlouisfed.org/useraccount/register
-    baseURL: 'https://api.stlouisfed.org/fred/series/observations',
+    // Data loaded from data/fred-data.json (fetched by GitHub Action)
     
     series: {
         steelMillProducts: {
@@ -136,29 +135,24 @@ const FREDCommodities = {
         }
     },
     
+    // Reads from data/fred-data.json (populated by GitHub Action) — no CORS issues.
+    _fredDataCache: null,
+    async _loadData() {
+        if (this._fredDataCache) return this._fredDataCache;
+        const res = await fetch('data/fred-data.json');
+        if (!res.ok) throw new Error('Could not load data/fred-data.json');
+        this._fredDataCache = await res.json();
+        return this._fredDataCache;
+    },
     async fetchSeries(seriesId, observationStart = null) {
         try {
-            const params = new URLSearchParams({
-                series_id: seriesId,
-                api_key: this.apiKey,
-                file_type: 'json',
-                sort_order: 'desc',
-                limit: 24
-            });
-            
-            if (observationStart) {
-                params.append('observation_start', observationStart);
-            }
-            
-            const response = await fetch(`${this.baseURL}?${params}`);
-            if (!response.ok) {
-                throw new Error(`FRED API error: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            return data.observations;
+            const data = await this._loadData();
+            const entry = data.series && data.series[seriesId];
+            if (!entry) return null;
+            // Return in desc order to match original usage
+            return [...entry.observations].reverse();
         } catch (error) {
-            console.error(`Error fetching ${seriesId}:`, error);
+            console.error(`Error reading ${seriesId}:`, error);
             return null;
         }
     },

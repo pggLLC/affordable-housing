@@ -175,37 +175,33 @@ class FREDCommodityPrices {
         };
     }
     
-    // Fetch live data from FRED API
+    // Reads from data/fred-data.json (populated by GitHub Action) — no CORS issues.
     async fetchLiveData(seriesId) {
-        if (!this.apiKey) {
-            console.warn('FRED API key not set. Using sample data.');
-            return this.currentPrices[seriesId] || null;
-        }
-        
         try {
-            const url = `${this.baseURL}?series_id=${this.series[seriesId]}&api_key=${this.apiKey}&file_type=json&sort_order=desc&limit=13`; // 13 months for YoY
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.observations && data.observations.length >= 2) {
-                const current = parseFloat(data.observations[0].value);
-                const lastMonth = parseFloat(data.observations[1].value);
-                const lastYear = parseFloat(data.observations[12]?.value || data.observations[0].value);
-                
-                const mom_change = ((current - lastMonth) / lastMonth * 100).toFixed(1);
-                const yoy_change = ((current - lastYear) / lastYear * 100).toFixed(1);
-                
-                return {
-                    current: current.toFixed(2),
-                    mom_change: parseFloat(mom_change),
-                    yoy_change: parseFloat(yoy_change),
-                    date: data.observations[0].date,
-                    series_name: seriesId,
-                    source: 'FRED'
-                };
+            if (!this._fredCache) {
+                const res = await fetch('data/fred-data.json');
+                if (!res.ok) throw new Error('Could not load data/fred-data.json');
+                this._fredCache = await res.json();
             }
+            const fredSeriesId = this.series[seriesId];
+            const entry = this._fredCache.series && this._fredCache.series[fredSeriesId];
+            if (!entry || !entry.observations || entry.observations.length < 2) {
+                return this.currentPrices[seriesId] || null;
+            }
+            const obs = entry.observations;
+            const current = parseFloat(obs[obs.length - 1].value);
+            const lastMonth = parseFloat(obs[obs.length - 2].value);
+            const lastYear = parseFloat(obs[Math.max(0, obs.length - 13)].value);
+            return {
+                current: current.toFixed(2),
+                mom_change: parseFloat(((current - lastMonth) / lastMonth * 100).toFixed(1)),
+                yoy_change: parseFloat(((current - lastYear) / lastYear * 100).toFixed(1)),
+                date: obs[obs.length - 1].date,
+                series_name: seriesId,
+                source: 'FRED (cached)'
+            };
         } catch (error) {
-            console.error(`Error fetching FRED data for ${seriesId}:`, error);
+            console.error(`Error reading FRED data for ${seriesId}:`, error);
             return this.currentPrices[seriesId] || null;
         }
     }
