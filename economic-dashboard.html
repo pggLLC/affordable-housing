@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Dashboard | LIHTC Analytics Hub</title>
+    <meta name="description" content="Real-time economic indicators from FRED including construction costs, labor markets, housing starts, and key financial metrics.">
+    
+    <!-- Unified Theme -->
+    <link rel="stylesheet" href="unified-theme.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .page-header {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+        
+        .page-title {
+            color: var(--accent-gold);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-family: var(--font-display);
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 23, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--accent-gold);
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Summary stats */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .summary-card {
+            background-color: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+            text-align: center;
+        }
+        
+        .summary-value {
+            color: var(--accent-gold);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Indicator categories */
+        .indicator-category {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent-gold);
+        }
+        
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .category-title {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            font-family: var(--font-display);
+        }
+        
+        .category-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+        
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        /* Indicator grid */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Indicator card */
+        .indicator-card {
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 3px solid var(--accent-gold);
+            transition: transform 0.3s ease;
+        }
+        
+        .indicator-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .indicator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .indicator-name {
+            color: var(--accent-gold);
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .indicator-trend {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .trend-up {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+        
+        .trend-down {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+        
+        .trend-stable {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+        
+        .indicator-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0.5rem 0;
+        }
+        
+        .indicator-change {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .indicator-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        
+        /* Error alert */
+        .error-alert {
+            background-color: rgba(192, 57, 43, 0.2);
+            border-left: 4px solid #c0392b;
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        /* Refresh button */
+        .refresh-btn {
+            background-color: var(--accent-gold);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background-color: var(--accent-gold-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* Data source note */
+        .data-source {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .data-source a {
+            color: var(--accent-gold);
+            text-decoration: none;
+        }
+        
+        .data-source a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .indicators-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p class="loading-text">Loading economic data from FRED...</p>
+    </div>
+    
+    <main>
+        <div class="dashboard-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Economic Dashboard</h1>
+                <p class="page-subtitle">
+                    Real-time economic indicators from the Federal Reserve Economic Data (FRED) affecting affordable housing development
+                </p>
+                <button id="refresh-data" class="refresh-btn" style="margin-top: 1rem;">
+                    🔄 Refresh Data
+                </button>
+            </div>
+            
+            <!-- Summary Statistics -->
+            <div class="summary-stats">
+                <div class="summary-card">
+                    <div class="summary-value" id="total-indicators">24</div>
+                    <div class="summary-label">Key Indicators</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="data-sources">1</div>
+                    <div class="summary-label">Data Sources</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="last-update">Loading...</div>
+                    <div class="summary-label">Last Updated</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="update-frequency">Monthly</div>
+                    <div class="summary-label">Update Frequency</div>
+                </div>
+            </div>
+            
+            <!-- Construction Costs -->
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div>
+                        <h2 class="category-title">Construction Costs</h2>
+                        <p class="category-subtitle">Producer price indices for building materials and construction inputs</p>
+                    </div>
+                    <span class="last-updated" id="construction-last-updated"></span>
+                </div>
+                <div class="indicators-grid" id="construction-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Housing Market -->
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div>
+                        <h2 class="category-title">Housing Market Indicators</h2>
+                        <p class="category-subtitle">Housing starts, permits, sales, and affordability metrics</p>
+                    </div>
+                    <span class="last-updated" id="housing-last-updated"></span>
+                </div>
+                <div class="indicators-grid" id="housing-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Financial Indicators -->
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div>
+                        <h2 class="category-title">Financial Indicators</h2>
+                        <p class="category-subtitle">Interest rates, yields, and credit market conditions</p>
+                    </div>
+                    <span class="last-updated" id="financial-last-updated"></span>
+                </div>
+                <div class="indicators-grid" id="financial-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Labor Market -->
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div>
+                        <h2 class="category-title">Labor Market</h2>
+                        <p class="category-subtitle">Employment, wages, and labor force metrics</p>
+                    </div>
+                    <span class="last-updated" id="labor-last-updated"></span>
+                </div>
+                <div class="indicators-grid" id="labor-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Data Source -->
+            <div class="data-source">
+                <p><strong>Data Source:</strong> All economic indicators sourced from the <a href="https://fred.stlouisfed.org/" target="_blank" rel="noopener">Federal Reserve Economic Data (FRED)</a> maintained by the Federal Reserve Bank of St. Louis.</p>
+                <p style="margin-top: 0.5rem;">Data updates automatically. Refresh this page to see the latest values.</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- FRED Commodities Integration -->
+    <script src="js/fred-commodities.js"></script>
+    
+    <!-- Data Loading and UI Update Logic -->
+    <script>
+        // Cache configuration
+        const CACHE_KEY = 'fred_economic_data';
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+        
+        // Category mappings
+        const CATEGORY_MAPPINGS = {
+            construction: ['steelMillProducts', 'steelRebar', 'copperWireCable', 'softwoodLumber', 'framingLumber', 'concreteProducts', 'portlandCement', 'gypsumDrywall'],
+            housing: ['insulationMaterials', 'aluminumProducts', 'plywoodSheathing', 'readyMixConcrete', 'asphaltPaving'],
+            financial: ['dieselFuel', 'naturalGas'],
+            labor: ['constructionWages']
+        };
+        
+        // Fallback data in case API fails
+        const FALLBACK_DATA = {
+            steelMillProducts: { current: 245.6, yoyChange: 12.3, name: 'Steel Mill Products PPI', date: '2026-01-01', category: 'Steel & Metal' },
+            softwoodLumber: { current: 156.8, yoyChange: -8.5, name: 'Softwood Lumber PPI', date: '2026-01-01', category: 'Wood Products' },
+            concreteProducts: { current: 178.9, yoyChange: 5.2, name: 'Concrete Products PPI', date: '2026-01-01', category: 'Concrete & Masonry' },
+            constructionWages: { current: 35.42, yoyChange: 4.8, name: 'Construction Avg Hourly Wage', date: '2026-01-01', category: 'Labor' }
+        };
+        
+        // Get cached data or fetch fresh
+        async function getCachedData() {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached);
+                if (Date.now() - timestamp < CACHE_DURATION) {
+                    console.log('Using cached data');
+                    return data;
+                }
+            }
+            
+            console.log('Fetching fresh data from FRED...');
+            const freshData = await FREDCommodities.getAllCommodities();
+            
+            if (freshData && Object.keys(freshData).length > 0) {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                    data: freshData,
+                    timestamp: Date.now()
+                }));
+                return freshData;
+            }
+            
+            return null;
+        }
+        
+        // Create indicator card HTML
+        function createIndicatorCard(key, indicator) {
+            const yoyChange = parseFloat(indicator.yoyChange) || 0;
+            const trendClass = yoyChange > 0 ? 'trend-up' : yoyChange < 0 ? 'trend-down' : 'trend-stable';
+            const trendIcon = yoyChange > 0 ? '↑' : yoyChange < 0 ? '↓' : '→';
+            
+            return `
+                <div class="indicator-card" data-indicator="${key}">
+                    <div class="indicator-header">
+                        <span class="indicator-name">${indicator.name}</span>
+                        <span class="indicator-trend ${trendClass}">${trendIcon} ${Math.abs(yoyChange).toFixed(1)}%</span>
+                    </div>
+                    <div class="indicator-value">${indicator.current ? indicator.current.toFixed(2) : 'N/A'}</div>
+                    <div class="indicator-change">Year-over-year change</div>
+                    <div class="indicator-date">Updated: ${indicator.date || 'Unknown'}</div>
+                </div>
+            `;
+        }
+        
+        // Update UI with data
+        function updateDashboard(data) {
+            // Update summary stats
+            const latestDate = Object.values(data)[0]?.date || 'Unknown';
+            document.getElementById('last-update').textContent = latestDate;
+            document.getElementById('total-indicators').textContent = Object.keys(data).length;
+            
+            // Populate category grids
+            Object.entries(CATEGORY_MAPPINGS).forEach(([category, indicators]) => {
+                const grid = document.getElementById(`${category}-grid`);
+                if (grid) {
+                    const cards = indicators
+                        .filter(key => data[key])
+                        .map(key => createIndicatorCard(key, data[key]))
+                        .join('');
+                    grid.innerHTML = cards || '<p style="color: var(--text-secondary);">No data available</p>';
+                }
+                
+                // Update last updated time
+                const updateEl = document.getElementById(`${category}-last-updated`);
+                if (updateEl && data[indicators[0]]) {
+                    updateEl.textContent = `Last updated: ${data[indicators[0]].date}`;
+                }
+            });
+        }
+        
+        // Show error message
+        function showError(message) {
+            const container = document.querySelector('.dashboard-container');
+            const alert = document.createElement('div');
+            alert.className = 'error-alert';
+            alert.innerHTML = `<strong>⚠️ Error:</strong> ${message}`;
+            container.insertBefore(alert, container.firstChild);
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        // Initialize dashboard
+        async function initializeDashboard() {
+            try {
+                const data = await getCachedData();
+                
+                if (!data || Object.keys(data).length === 0) {
+                    console.warn('No data from FRED API, using fallback data');
+                    updateDashboard(FALLBACK_DATA);
+                    showError('Unable to load live data. Showing sample data. Click "Refresh Data" to try again.');
+                } else {
+                    console.log('Successfully loaded data for', Object.keys(data).length, 'indicators');
+                    updateDashboard(data);
+                }
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                updateDashboard(FALLBACK_DATA);
+                showError('Unable to load economic data. Showing sample data.');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Refresh data button
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            
+            document.getElementById('refresh-data').addEventListener('click', async function() {
+                localStorage.removeItem(CACHE_KEY);
+                document.getElementById('loading-overlay').classList.remove('hidden');
+                await initializeDashboard();
+            });
+        });
+    </script>
+    
+    <!-- Navigation -->
+    <script src="navigation.js"></script>
+</body>
+</html>
