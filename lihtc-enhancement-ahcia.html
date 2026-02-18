@@ -6,7 +6,7 @@
   <title>AHCIA (LIHTC Enhancement) Update - LIHTC Analytics Hub</title>
 
   <!-- Site styles -->
-  <link rel="stylesheet" href="unified-theme.css" />
+  <link rel="stylesheet" href="css/unified-theme.css" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/responsive-nav.css" />
 
@@ -67,9 +67,35 @@
       }
     }
 
-    body{
-      background: var(--page-bg, var(--bg));
-      color: var(--text-primary, var(--text));
+    
+    /* Ensure external theme variables can't create low-contrast combos on this page */
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg-primary: var(--bg-l) !important;
+        --bg-secondary: var(--surface-l) !important;
+        --page-bg: var(--bg-l) !important;
+        --card-bg: var(--surface-l) !important;
+        --card-border: var(--border-l) !important;
+        --text-primary: var(--text-l) !important;
+        --text-secondary: var(--muted-l) !important;
+        --accent: var(--link-l) !important;
+      }
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg-primary: var(--bg-d) !important;
+        --bg-secondary: var(--surface-d) !important;
+        --page-bg: var(--bg-d) !important;
+        --card-bg: var(--surface-d) !important;
+        --card-border: var(--border-d) !important;
+        --text-primary: var(--text-d) !important;
+        --text-secondary: var(--muted-d) !important;
+        --accent: var(--link-d) !important;
+      }
+    }
+body{
+      background: var(--bg) !important;
+      color: var(--text) !important;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       line-height: 1.55;
       margin: 0;
