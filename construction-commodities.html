@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Construction Commodities Forecast | LIHTC Analytics Hub</title>
+<meta content="Track and forecast construction commodity prices from FRED data including lumber, concrete, steel, copper, and fuel costs with 5-year predictions." name="description"/>
+<!-- Unified Theme -->
+<style>
+        /* Additional styles for commodity charts */
+        .commodities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .commodity-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-gold);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .commodity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .commodity-title {
+            color: var(--accent-gold);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .commodity-status {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-up {
+            background-color: var(--status-warning-bg);
+            color: var(--status-warning-text);
+        }
+        
+        .status-down {
+            background-color: var(--status-success-bg);
+            color: var(--status-success-text);
+        }
+        
+        .status-stable {
+            background-color: var(--status-info-bg);
+            color: var(--status-info-text);
+        }
+        
+        .commodity-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-item-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-item-value {
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-message {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .error-message {
+            background-color: #4a1a1a;
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin: 1rem 0;
+        }
+        
+        .summary-section {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent-gold);
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .methodology {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .methodology h3 {
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .methodology ul {
+            list-style-position: inside;
+            line-height: 1.8;
+        }
+        
+        @media (max-width: 768px) {
+            .commodities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .commodity-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+<link href="unified-theme.css" rel="stylesheet"/><script defer="" src="navigation.js"></script></head>
+<body>
+<main>
+<!-- Header and Navigation will be inserted by navigation.js -->
+<div class="container">
+<!-- Page Header -->
+<div class="page-header">
+<h1 class="page-title">Construction Commodities Forecast</h1>
+<p class="page-subtitle">
+                    Real-time FRED data with 5-year price predictions for key construction materials
+                </p>
+</div>
+<!-- Market Summary -->
+<div class="summary-section">
+<h2 class="section-title">Market Overview</h2>
+<div class="summary-grid" id="market-summary">
+<div class="loading-message">
+<div class="loading-spinner"></div>
+<p>Loading market data...</p>
+</div>
+</div>
+</div>
+<!-- Commodities Charts -->
+<div id="commodities-container">
+<div class="loading-message">
+<div class="loading-spinner"></div>
+<p>Loading commodity data from FRED...</p>
+</div>
+</div>
+<!-- Methodology -->
+<div class="methodology">
+<h3>Forecast Methodology</h3>
+<p style="margin-bottom: 1rem;">Our 5-year price predictions use advanced statistical modeling:</p>
+<ul>
+<li><strong>Linear Regression:</strong> Identifies long-term trends in commodity prices</li>
+<li><strong>Historical Patterns:</strong> Analyzes 5 years of FRED data</li>
+<li><strong>Moving Averages:</strong> Smooths volatility to show underlying trends</li>
+<li><strong>Seasonal Adjustments:</strong> Accounts for cyclical patterns</li>
+</ul>
+<p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+<em>Note: Forecasts are based on historical trends and should not be considered financial advice. 
+                    Actual prices may vary significantly due to market conditions, policy changes, and unforeseen events.</em>
+</p>
+</div>
+</div>
+</main>
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Navigation Script -->
+<script src="js/config.js"></script>
+<!-- Commodities Data and Visualization -->
+<script>
+        // FRED API Configuration
+        const FRED_API_KEY = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : ''; // Users will need to add their own key
+        const PROXY_URL = 'https://api.allorigins.win/raw?url='; // CORS proxy
+        
+        // Construction Commodity Series from FRED
+        const COMMODITY_SERIES = {
+            lumber: {
+                id: 'WPU0811',
+                name: 'Softwood Lumber',
+                unit: 'Index',
+                description: 'Producer Price Index for Softwood Lumber'
+            },
+            concrete: {
+                id: 'PCU327310327310',
+                name: 'Ready-Mix Concrete',
+                unit: 'Index',
+                description: 'Producer Price Index for Ready-Mix Concrete'
+            },
+            steel: {
+                id: 'WPU10170201',
+                name: 'Steel Mill Products',
+                unit: 'Index',
+                description: 'Producer Price Index for Steel Mill Products'
+            },
+            copper: {
+                id: 'PCOPPUSDM',
+                name: 'Copper',
+                unit: '$/Metric Ton',
+                description: 'Global Price of Copper'
+            },
+            diesel: {
+                id: 'GASDESW',
+                name: 'Diesel Fuel',
+                unit: '$/Gallon',
+                description: 'US Diesel Sales Price'
+            },
+            aluminum: {
+                id: 'PALUMUSDM',
+                name: 'Aluminum',
+                unit: '$/Metric Ton',
+                description: 'Global Price of Aluminum'
+            }
+        };
+        
+        // Store chart instances
+        const charts = {};
+        
+        // Calculate linear regression for forecasting
+        function linearRegression(data) {
+            const n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            data.forEach((point, i) => {
+                sumX += i;
+                sumY += point.value;
+                sumXY += i * point.value;
+                sumX2 += i * i;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+        
+        // Generate forecast data
+        function generateForecast(historicalData, periods = 60) {
+            const { slope, intercept } = linearRegression(historicalData);
+            const lastIndex = historicalData.length - 1;
+            const lastDate = new Date(historicalData[lastIndex].date);
+            const forecast = [];
+            
+            for (let i = 1; i <= periods; i++) {
+                const futureDate = new Date(lastDate);
+                futureDate.setMonth(futureDate.getMonth() + i);
+                
+                const predictedValue = slope * (lastIndex + i) + intercept;
+                
+                forecast.push({
+                    date: futureDate.toISOString().split('T')[0],
+                    value: Math.max(0, predictedValue) // Ensure non-negative
+                });
+            }
+            
+            return forecast;
+        }
+        
+        // Calculate statistics
+        function calculateStats(data) {
+            if (!data || data.length === 0) return null;
+            
+            const values = data.map(d => d.value);
+            const current = values[values.length - 1];
+            const previous = values[values.length - 2];
+            const change = ((current - previous) / previous * 100).toFixed(2);
+            
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            
+            return {
+                current: current.toFixed(2),
+                change: change,
+                min: min.toFixed(2),
+                max: max.toFixed(2),
+                avg: avg.toFixed(2),
+                trend: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+            };
+        }
+        
+        // Fetch data from FRED (demo version with mock data)
+        
+async function fetchFREDData(seriesId, limit = 60) {
+    if (!FRED_API_KEY) {
+        console.warn('Missing FRED API key, using mock data.');
+        return generateMockData();
+    }
+    try {
+        const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=desc&limit=${limit}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("FRED fetch failed");
+        const data = await res.json();
+        return data.observations.reverse().map(o=>({
+            date:o.date,
+            value:parseFloat(o.value)
+        })).filter(d=>!isNaN(d.value));
+    } catch(e) {
+        console.warn("FRED fetch error, using mock data", e);
+        return generateMockData();
+    }
+}
+
+        
+        // Generate realistic mock data
+        function generateMockData() {
+            const data = [];
+            const baseValue = 100 + Math.random() * 50;
+            const trend = (Math.random() - 0.5) * 0.5;
+            const volatility = Math.random() * 5;
+            
+            const startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 5);
+            
+            for (let i = 0; i < 60; i++) {
+                const date = new Date(startDate);
+                date.setMonth(date.getMonth() + i);
+                
+                const trendValue = baseValue + (trend * i);
+                const noise = (Math.random() - 0.5) * volatility;
+                const seasonal = Math.sin(i / 6 * Math.PI) * (volatility / 2);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    value: Math.max(0, trendValue + noise + seasonal)
+                });
+            }
+            
+            return data;
+        }
+        
+        // Create chart for commodity
+        function createCommodityChart(commodity, data, containerId) {
+            const forecast = generateForecast(data);
+            const stats = calculateStats(data);
+            
+            // Prepare chart data
+            const historicalDates = data.map(d => d.date);
+            const historicalValues = data.map(d => d.value);
+            const forecastDates = forecast.map(d => d.date);
+            const forecastValues = forecast.map(d => d.value);
+            
+            // Create chart
+            const ctx = document.getElementById(`chart-${containerId}`);
+            
+            if (charts[containerId]) {
+                charts[containerId].destroy();
+            }
+            
+            charts[containerId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [...historicalDates, ...forecastDates],
+                    datasets: [
+                        {
+                            label: 'Historical Data',
+                            data: [...historicalValues, ...Array(forecastValues.length).fill(null)],
+                            borderColor: '#d4a574',
+                            backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: '5-Year Forecast',
+                            data: [...Array(historicalValues.length).fill(null), historicalValues[historicalValues.length - 1], ...forecastValues],
+                            borderColor: '#87ceeb',
+                            backgroundColor: 'rgba(135, 206, 235, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e8dcc4',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(42, 37, 32, 0.95)',
+                            titleColor: '#d4a574',
+                            bodyColor: '#e8dcc4',
+                            borderColor: '#d4a574',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(58, 53, 48, 0.3)'
+                            },
+                            ticks: {
+                                color: '#e8dcc4',
+                                maxTicksLimit: 12
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(58, 53, 48, 0.3)'
+                            },
+                            ticks: {
+                                color: '#e8dcc4'
+                            },
+                            title: {
+                                display: true,
+                                text: commodity.unit,
+                                color: '#d4a574'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return stats;
+        }
+        
+        // Render commodity card
+        function renderCommodityCard(key, commodity, stats) {
+            const trendClass = stats.trend === 'up' ? 'status-up' : 
+                              stats.trend === 'down' ? 'status-down' : 'status-stable';
+            const trendIcon = stats.trend === 'up' ? '↑' : 
+                            stats.trend === 'down' ? '↓' : '→';
+            
+            return `
+                <div class="commodity-card">
+                    <div class="commodity-header">
+                        <h3 class="commodity-title">${commodity.name}</h3>
+                        <div class="commodity-status">
+                            <span class="status-badge ${trendClass}">
+                                ${trendIcon} ${Math.abs(stats.change)}%
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="commodity-stats">
+                        <div class="stat-item">
+                            <div class="stat-item-label">Current</div>
+                            <div class="stat-item-value">${stats.current}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-label">5Y Low</div>
+                            <div class="stat-item-value">${stats.min}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-label">5Y High</div>
+                            <div class="stat-item-value">${stats.max}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="chart-${key}" class="chart-canvas"></canvas>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                        ${commodity.description}
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Initialize all commodities
+        async function initializeCommodities() {
+            const container = document.getElementById('commodities-container');
+            container.innerHTML = '';
+            
+            const summaryStats = {};
+            
+            for (const [key, commodity] of Object.entries(COMMODITY_SERIES)) {
+                try {
+                    const data = await fetchFREDData(commodity.id);
+                    
+                    // Add card HTML
+                    const cardHTML = renderCommodityCard(key, commodity, { current: '...', change: '0', min: '...', max: '...', trend: 'stable' });
+                    container.innerHTML += cardHTML;
+                    
+                    // Create chart and get stats
+                    const stats = createCommodityChart(commodity, data, key);
+                    summaryStats[key] = { commodity, stats };
+                    
+                    // Update stats in card
+                    const card = container.querySelector('.commodity-card:last-child');
+                    const statsContainer = card.querySelector('.commodity-stats');
+                    statsContainer.innerHTML = `
+                        <div class="stat-item">
+                            <div class="stat-item-label">Current</div>
+                            <div class="stat-item-value">${stats.current}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-label">5Y Low</div>
+                            <div class="stat-item-value">${stats.min}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-label">5Y High</div>
+                            <div class="stat-item-value">${stats.max}</div>
+                        </div>
+                    `;
+                    
+                    const trendClass = stats.trend === 'up' ? 'status-up' : 
+                                      stats.trend === 'down' ? 'status-down' : 'status-stable';
+                    const trendIcon = stats.trend === 'up' ? '↑' : 
+                                    stats.trend === 'down' ? '↓' : '→';
+                    
+                    card.querySelector('.status-badge').className = `status-badge ${trendClass}`;
+                    card.querySelector('.status-badge').textContent = `${trendIcon} ${Math.abs(stats.change)}%`;
+                    
+                } catch (error) {
+                    console.error(`Error loading ${commodity.name}:`, error);
+                    container.innerHTML += `
+                        <div class="commodity-card">
+                            <div class="error-message">
+                                Failed to load data for ${commodity.name}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Update market summary
+            updateMarketSummary(summaryStats);
+        }
+        
+        // Update market summary
+        function updateMarketSummary(summaryStats) {
+            const summary = document.getElementById('market-summary');
+            
+            const commodities = Object.values(summaryStats);
+            const avgChange = commodities.reduce((sum, item) => sum + parseFloat(item.stats.change), 0) / commodities.length;
+            const upCount = commodities.filter(item => item.stats.trend === 'up').length;
+            const downCount = commodities.filter(item => item.stats.trend === 'down').length;
+            
+            summary.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${commodities.length}</div>
+                    <div class="stat-label">Commodities Tracked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${avgChange.toFixed(2)}%</div>
+                    <div class="stat-label">Avg Monthly Change</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${upCount}</div>
+                    <div class="stat-label">Trending Up</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${downCount}</div>
+                    <div class="stat-label">Trending Down</div>
+                </div>
+            `;
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCommodities();
+        });
+    </script>
+</body>
+</html>

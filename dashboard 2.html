@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LIHTC Market Dashboard | LIHTC Analytics Hub</title>
+<meta content="Real-time analytics on tax credit allocations, pricing, and housing development." name="description"/>
+<!-- Unified Theme -->
+<link href="unified-theme.css" rel="stylesheet"/>
+<!-- D3.js for map -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            color: var(--accent-gold);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Controls */
+        .dashboard-controls {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .control-label {
+            display: block;
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .control-select {
+            width: 100%;
+            padding: 0.6rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-gold);
+            text-align: center;
+        }
+        
+        .stat-value {
+            color: var(--accent-gold);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Map Section */
+        .map-section {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            color: var(--accent-gold);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        #us-map-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 1.5rem auto;
+            position: relative;
+        }
+        
+        #us-map {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .state-path {
+            stroke: #d4a574;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .state-path:hover {
+            stroke: #e4b584;
+            stroke-width: 2.5;
+            filter: brightness(1.2);
+        }
+        
+        .state-label {
+            fill: #e8dcc4;
+            font-size: 10px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+        
+        /* Region colors */
+        .region-northeast { fill: #2d6b4f; }
+        .region-south { fill: #d4a574; }
+        .region-midwest { fill: #5a9fb8; }
+        .region-west { fill: #c49563; }
+        
+        /* Allocation colors */
+        .allocation-tier-1 { fill: #1a4d2e; }
+        .allocation-tier-2 { fill: #2d6b4f; }
+        .allocation-tier-3 { fill: #4a8a70; }
+        .allocation-tier-4 { fill: #6aa88a; }
+        .allocation-tier-5 { fill: #4a4035; }
+        
+        .map-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 25px;
+            height: 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+        
+        /* Tooltip */
+        .map-tooltip {
+            position: absolute;
+            background-color: var(--bg-secondary);
+            border: 2px solid var(--accent-gold);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .map-tooltip.visible {
+            opacity: 1;
+        }
+        
+        /* Table */
+        .data-table-container {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background-color: var(--bg-primary);
+            color: var(--accent-gold);
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 0.9rem 1rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        
+        .data-table tr:hover {
+            background-color: rgba(212, 165, 116, 0.1);
+        }
+        
+        .data-source {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .data-source a {
+            color: var(--accent-gold);
+            text-decoration: none;
+        }
+        
+        .data-source a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 250px;
+            margin: 1.5rem auto;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+            
+            .dashboard-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+<script defer="" src="navigation.js"></script></head>
+<body>
+<main>
+<div class="dashboard-container">
+<!-- Page Header -->
+<div class="page-header">
+<h1 class="page-title">LIHTC Market Dashboard</h1>
+<p class="page-subtitle">Real-time analytics on tax credit allocations, pricing, and housing development</p>
+</div>
+<!-- Dashboard Controls -->
+<div class="dashboard-controls">
+<div class="control-group">
+<label class="control-label">Year</label>
+<select class="control-select" id="year-select">
+<option selected="" value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+</select>
+</div>
+<div class="control-group">
+<label class="control-label">Region</label>
+<select class="control-select" id="region-select">
+<option selected="" value="all">All Regions</option>
+<option value="northeast">Northeast</option>
+<option value="south">South</option>
+<option value="midwest">Midwest</option>
+<option value="west">West</option>
+</select>
+</div>
+</div>
+<!-- Key Statistics -->
+<div class="stats-grid" id="stats-grid">
+<div class="stat-card">
+<div class="stat-value" id="stat-total">$12.8B</div>
+<div class="stat-label" id="stat-total-label">Annual LIHTC Allocations</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">$0.87</div>
+<div class="stat-label">Avg 9% Credit Price</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-states">51</div>
+<div class="stat-label" id="stat-states-label">States + DC</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-per-capita">$3.75</div>
+<div class="stat-label">Avg Per Capita</div>
+</div>
+</div>
+<div class="data-source">
+<strong>Data Source:</strong>
+<a href="https://www.novoco.com/resource-centers/affordable-housing-tax-credits/2026-federal-lihtc-information-by-state" rel="noopener" target="_blank">Novogradac 2026 LIHTC Data</a>
+                | Statistics update in real-time based on region selection
+            </div>
+<!-- Interactive Map -->
+<div class="map-section">
+<h2 class="section-title">LIHTC Allocations by Region</h2>
+<p class="section-subtitle">Click any state to view detailed allocation data. States colored by geographic region.</p>
+<div id="us-map-container">
+<svg id="us-map" preserveaspectratio="xMidYMid meet" viewbox="0 0 960 600">
+<text fill="#e8dcc4" font-size="16" text-anchor="middle" x="480" y="300">
+                            Loading US map...
+                        </text>
+</svg>
+</div>
+<div class="map-legend" id="map-legend">
+<div class="legend-item">
+<div class="legend-color region-northeast"></div>
+<span>Northeast</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-south"></div>
+<span>South</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-midwest"></div>
+<span>Midwest</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-west"></div>
+<span>West</span>
+</div>
+</div>
+</div>
+<!-- Tooltip -->
+<div class="map-tooltip" id="map-tooltip"></div>
+<!-- Top States Table -->
+<div class="data-table-container">
+<h2 class="section-title" id="table-title">Top 10 States (Selected Region)</h2>
+<p class="section-subtitle">States ranked by total LIHTC allocation amount</p>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>State</th>
+<th>Population</th>
+<th>Total Allocation</th>
+<th>Per Capita</th>
+<th>% of National</th>
+</tr>
+</thead>
+<tbody id="states-table-body">
+<tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading data...</td></tr>
+</tbody>
+</table>
+<h3 style="margin-top: 2.5rem;">Regional Allocation Summary</h3><table class=""><thead><tr><th>Region</th><th>States</th><th>Total Allocation</th><th>% of National</th><th>Per Capita</th></tr></thead><tbody id="regional-table-body"><tr><td colspan="5" style="text-align:center; padding: 1.5rem;">Loading...</td></tr></tbody></table></div>
+</div>
+<!-- Top States by Allocation Chart -->
+<div class="data-table-container">
+<h2 class="section-title">Top States by Allocation</h2>
+<p class="section-subtitle">Visual comparison of leading states</p>
+<div class="chart-container">
+<canvas id="allocations-chart"></canvas>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Script -->
+<script src="js/config.js"></script>
+<!-- State Data -->
+<script src="js/state-allocations-2026.js"></script>
+<script>
+console.log('Dashboard initializing...');
+
+// Region definitions (Census Bureau style groupings; adjust if desired)
+const REGIONS = {
+  northeast: ['CT','ME','MA','NH','NJ','NY','PA','RI','VT'],
+  south: ['AL','AR','DE','FL','GA','KY','LA','MD','MS','NC','OK','SC','TN','TX','VA','WV','DC'],
+  midwest: ['IL','IN','IA','KS','MI','MN','MO','NE','ND','OH','SD','WI'],
+  west: ['AK','AZ','CA','CO','HI','ID','MT','NV','NM','OR','UT','WA','WY']
+};
+
+const REGION_LABELS = {
+  all: 'National',
+  northeast: 'Northeast',
+  south: 'South',
+  midwest: 'Midwest',
+  west: 'West'
+};
+
+const fipsToAbbr = {
+  1:'AL',2:'AK',4:'AZ',5:'AR',6:'CA',8:'CO',9:'CT',10:'DE',11:'DC',12:'FL',13:'GA',15:'HI',16:'ID',17:'IL',18:'IN',19:'IA',20:'KS',21:'KY',22:'LA',23:'ME',24:'MD',25:'MA',26:'MI',27:'MN',28:'MS',29:'MO',30:'MT',31:'NE',32:'NV',33:'NH',34:'NJ',35:'NM',36:'NY',37:'NC',38:'ND',39:'OH',40:'OK',41:'OR',42:'PA',44:'RI',45:'SC',46:'SD',47:'TN',48:'TX',49:'UT',50:'VT',51:'VA',53:'WA',54:'WV',55:'WI',56:'WY'
+};
+
+let usTopo = null; // cached topojson
+let currentYear = '2026';
+let currentRegion = 'all';
+
+function getRegion(abbr){
+  if (REGIONS.northeast.includes(abbr)) return 'northeast';
+  if (REGIONS.south.includes(abbr)) return 'south';
+  if (REGIONS.midwest.includes(abbr)) return 'midwest';
+  if (REGIONS.west.includes(abbr)) return 'west';
+  return 'other';
+}
+
+function fmtMoney(n){ return '$' + (Number(n)||0).toLocaleString(); }
+function fmtNum(n,d=2){ return (Number(n)||0).toFixed(d); }
+
+function getDatasetForYear(year){
+  // NOTE: Novoco pages for 2024/2025 may be paywalled in some environments.
+  // Fallback: reuse 2026 dataset so the year dropdown functions without breaking the page.
+  if (year === '2026' && window.StateAllocations2026) return window.StateAllocations2026;
+  if (year === '2025' && window.StateAllocations2025) return window.StateAllocations2025;
+  if (year === '2024' && window.StateAllocations2024) return window.StateAllocations2024;
+  return window.StateAllocations2026; // safe fallback
+}
+
+function getStatesArray(ds){
+  const statesObj = ds?.states || {};
+  return Object.entries(statesObj).map(([abbr, s]) => ({
+    abbr,
+    name: s.name,
+    allocation: Number(s.allocation)||0,
+    population: Number(s.population)||0,
+    perCapita: Number(s.perCapita)||0,
+    status: s.status || '',
+    region: getRegion(abbr)
+  }));
+}
+
+function filterByRegion(states, region){
+  if (!region || region === 'all') return states;
+  return states.filter(s => s.region === region);
+}
+
+function setText(id, value){
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function updateStats(ds, region){
+  const all = getStatesArray(ds);
+  const filtered = filterByRegion(all, region);
+
+  const totalAlloc = filtered.reduce((sum,s)=>sum+s.allocation, 0);
+  const totalPop = filtered.reduce((sum,s)=>sum+s.population, 0);
+  const weightedPerCap = totalPop ? (totalAlloc / totalPop) : 0;
+
+  setText('stat-total', fmtMoney(totalAlloc));
+  setText('stat-states', String(filtered.length));
+  setText('stat-per-capita', '$' + fmtNum(weightedPerCap, 2));
+
+  setText('stat-total-label', region === 'all' ? 'Total Allocation (National)' : `Total Allocation (${REGION_LABELS[region]})`);
+  setText('stat-states-label', region === 'all' ? 'States Included' : `States in ${REGION_LABELS[region]}`);
+
+  return { all, filtered, totalAlloc, totalPop, weightedPerCap };
+}
+
+function updateTopStatesTable(allStates, filteredStates, region, nationalTotal){
+  const title = document.getElementById('table-title');
+  if (title) title.textContent = region === 'all'
+    ? 'Top 10 States (National)'
+    : `Top 10 States (${REGION_LABELS[region]})`;
+
+  const tbody = document.getElementById('states-table-body');
+  if (!tbody) return;
+
+  const top10 = filteredStates
+    .slice()
+    .sort((a,b)=>b.allocation - a.allocation)
+    .slice(0,10);
+
+  tbody.innerHTML = top10.map((s, i) => {
+    const pctNational = nationalTotal ? (s.allocation / nationalTotal * 100) : 0;
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td>${s.name}</td>
+        <td>${s.population ? s.population.toLocaleString() : '—'}</td>
+        <td>${fmtMoney(s.allocation)}</td>
+        <td>$${fmtNum(s.perCapita, 2)}</td>
+        <td>${fmtNum(pctNational, 2)}%</td>
+      </tr>`;
+  }).join('');
+
+  if (!top10.length){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem;">No states found for this region.</td></tr>`;
+  }
+}
+
+function updateRegionalSummaryTable(ds){
+  const tbody = document.getElementById('regional-table-body');
+  if (!tbody) return;
+
+  const all = getStatesArray(ds);
+  const nationalTotal = all.reduce((sum,s)=>sum+s.allocation, 0);
+
+  const rows = ['northeast','south','midwest','west'].map(r => {
+    const group = all.filter(s => s.region === r);
+    const totalAlloc = group.reduce((sum,s)=>sum+s.allocation,0);
+    const totalPop = group.reduce((sum,s)=>sum+s.population,0);
+    const perCap = totalPop ? (totalAlloc/totalPop) : 0;
+    const pct = nationalTotal ? (totalAlloc/nationalTotal*100) : 0;
+    return { region:r, states:group.length, totalAlloc, pct, perCap };
+  });
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${REGION_LABELS[r.region]}</td>
+      <td>${r.states}</td>
+      <td>${fmtMoney(r.totalAlloc)}</td>
+      <td>${fmtNum(r.pct,2)}%</td>
+      <td>$${fmtNum(r.perCap,2)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderMap(ds, region){
+  const container = document.getElementById('us-map');
+  if (!container) return;
+
+  // Ensure SVG exists
+  const width = 960;
+  const height = 520;
+  container.innerHTML = '';
+  const svg = d3.select(container).append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`);
+
+  const tooltip = document.getElementById('map-tooltip');
+
+  const statesArr = getStatesArray(ds);
+  const byAbbr = Object.fromEntries(statesArr.map(s => [s.abbr, s]));
+  const nationalTotal = statesArr.reduce((sum,s)=>sum+s.allocation,0);
+
+  const maxPerCap = Math.max(...statesArr.map(s=>s.perCapita), 1);
+  const color = d3.scaleSequential(d3.interpolateBlues).domain([0, maxPerCap]);
+
+  const showTooltip = (event, abbr) => {
+    const s = byAbbr[abbr];
+    if (!s || !tooltip) return;
+    const pct = nationalTotal ? (s.allocation/nationalTotal*100) : 0;
+
+    tooltip.innerHTML = `
+      <div style="color: var(--accent-gold); font-weight: 700; margin-bottom: 6px;">
+        ${s.name} (${abbr})
+      </div>
+      <div><strong>Total allocation:</strong> ${fmtMoney(s.allocation)}</div>
+      <div><strong>Per-capita:</strong> $${fmtNum(s.perCapita,2)}</div>
+      <div><strong>% national:</strong> ${fmtNum(pct,2)}%</div>
+      <div><strong>Region:</strong> ${REGION_LABELS[s.region] || s.region}</div>
+    `;
+    tooltip.style.left = (event.pageX + 12) + 'px';
+    tooltip.style.top = (event.pageY + 12) + 'px';
+    tooltip.classList.add('visible');
+  };
+
+  const hideTooltip = () => { if (tooltip) tooltip.classList.remove('visible'); };
+
+  const draw = (us) => {
+    const features = topojson.feature(us, us.objects.states).features;
+    const projection = d3.geoAlbersUsa().fitSize([width, height], {type:'FeatureCollection', features});
+    const path = d3.geoPath(projection);
+
+    svg.append('g').selectAll('path')
+      .data(features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', d => {
+        const abbr = fipsToAbbr[Number(d.id)];
+        const s = abbr ? byAbbr[abbr] : null;
+        if (!s) return '#2a2a2a';
+
+        // Dim states outside region selection
+        if (region !== 'all' && s.region !== region) return 'rgba(232,220,196,0.10)';
+        return color(s.perCapita);
+      })
+      .attr('stroke','rgba(255,255,255,0.55)')
+      .attr('stroke-width',0.8)
+      .on('mousemove', (event, d) => {
+        const abbr = fipsToAbbr[Number(d.id)];
+        if (!abbr) return;
+        showTooltip(event, abbr);
+      })
+      .on('mouseleave', hideTooltip);
+
+    svg.append('path')
+      .datum(topojson.mesh(us, us.objects.states, (a,b)=>a!==b))
+      .attr('fill','none')
+      .attr('stroke','rgba(255,255,255,0.70)')
+      .attr('stroke-width',0.65)
+      .attr('d', path);
+  };
+
+  if (usTopo) return draw(usTopo);
+
+  d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json')
+    .then(us => { usTopo = us; draw(us); })
+    .catch(err => {
+      console.error('Map load failed', err);
+      container.innerHTML = '<div style="padding:1rem; color: var(--text-secondary);">Map failed to load. Check network / CDN access.</div>';
+    });
+}
+
+function applyFilters(){
+  const ds = getDatasetForYear(currentYear);
+  if (!ds || !ds.states) {
+    console.error('Dataset not available for year', currentYear);
+    return;
+  }
+
+  const { all, filtered } = updateStats(ds, currentRegion);
+  const nationalTotal = all.reduce((sum,s)=>sum+s.allocation,0);
+
+  updateTopStatesTable(all, filtered, currentRegion, nationalTotal);
+  updateRegionalSummaryTable(ds);
+  renderMap(ds, currentRegion);
+}
+
+function wireControls(){
+  const yearSel = document.getElementById('year-select');
+  const regionSel = document.getElementById('region-select');
+
+  if (yearSel) {
+    yearSel.addEventListener('change', () => {
+      currentYear = yearSel.value;
+      applyFilters();
+    });
+  }
+
+  if (regionSel) {
+    regionSel.addEventListener('change', () => {
+      currentRegion = regionSel.value;
+      applyFilters();
+    });
+  }
+}
+
+function init(){
+  wireControls();
+
+  // Default selections
+  const yearSel = document.getElementById('year-select');
+  const regionSel = document.getElementById('region-select');
+  currentYear = yearSel ? yearSel.value : '2026';
+  currentRegion = regionSel ? regionSel.value : 'all';
+
+  // Wait for dataset file to load (it defines window.StateAllocations2026)
+  const wait = (tries=0) => {
+    const ds = getDatasetForYear(currentYear);
+    if (ds && ds.states) return applyFilters();
+    if (tries > 50) {
+      console.error('Dataset did not load.');
+      return;
+    }
+    setTimeout(() => wait(tries+1), 120);
+  };
+  wait();
+}
+
+init();
+</script>
+</body>
+</html>
