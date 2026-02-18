@@ -375,18 +375,11 @@
                 <a href="https://fred.stlouisfed.org/" rel="noopener" target="_blank">Federal Reserve Economic Data (FRED)</a>, 
                 Federal Reserve Bank of St. Louis.
                 <br/><br/>
-<strong>Note:</strong> Current implementation uses representative mock data for demonstration. 
-                To enable real-time FRED data:
-                <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
-<li>Obtain a free API key from <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">FRED API</a></li>
-<li>Edit this file and add your API key on line 460</li>
-<li>Uncomment the real API fetch code</li>
-</ol>
+<strong>Note:</strong> Data loads live from FRED using the API key in <code>js/config.js</code>. If you see “Loading…” indefinitely, open DevTools → Console for errors and verify your GitHub Pages paths.
 </div>
 </div>
 </main>
 <!-- Chart.js Library -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- Navigation Script -->
 <!-- Economic Dashboard Data & Visualization -->
 <script>
@@ -575,12 +568,12 @@
         };
         
         // Fetch data from FRED (with mock data fallback)
-        async function fetchFREDData(seriesId, limit = 60) {
+        async function fetchFREDData(seriesId, limit = 84) {
             try {
                 if (!FRED_API_KEY) {
                     throw new Error('Missing FRED API key in js/config.js (APP_CONFIG.FRED_API_KEY).');
                 }
-                const url = `${FRED_BASE_URL}?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=desc&limit=${limit}`;
+                const url = `${FRED_BASE_URL}?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=desc&observation_start=2019-01-01&limit=${limit}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`FRED API request failed: ${response.status}`);

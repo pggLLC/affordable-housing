@@ -309,20 +309,12 @@
 <div class="category-header">
 <div>
 <h2 class="category-title">FRED Connection</h2>
-<p class="category-subtitle">Paste your FRED API key to load live charts. Stored in your browser (localStorage).</p>
+<p class="category-subtitle">Uses the FRED API key from <code>js/config.js</code> (window.APP_CONFIG.FRED_API_KEY).</p>
 </div>
 <div class="last-updated" id="fred-connected">Connected: …</div>
 </div>
-<div class="tools-row" style="margin: 0;">
-<label style="display:flex; flex-direction:column; gap:4px;">
-<span style="font-size:.9rem; opacity:.85;">FRED API Key</span>
-<input id="fred-key-input" placeholder="Paste FRED key…" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.18); color: inherit; min-width: 340px;" type="password"/>
-</label>
-<button class="btn" id="fred-save">Save</button>
-<button class="btn" id="fred-clear">Clear</button>
-</div>
 <div id="fred-help" style="margin-top:10px; opacity:.8;">
-            Tip: If charts don’t load, confirm the key is valid and check your browser console for API errors.
+            Tip: If charts don’t load, confirm <code>js/config.js</code> loads and contains <code>FRED_API_KEY</code>, then check your browser console/network tab for API errors.
           </div>
 </div>
 
@@ -415,13 +407,7 @@
                 <a href="https://fred.stlouisfed.org/" rel="noopener" target="_blank">Federal Reserve Economic Data (FRED)</a>, 
                 Federal Reserve Bank of St. Louis.
                 <br/><br/>
-<strong>Note:</strong> Current implementation uses representative mock data for demonstration. 
-                To enable real-time FRED data:
-                <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
-<li>Obtain a free API key from <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">FRED API</a></li>
-<li>Edit this file and add your API key on line 460</li>
-<li>Uncomment the real API fetch code</li>
-</ol>
+<strong>Note:</strong> Data loads live from FRED using the API key in <code>js/config.js</code>. If you see “Loading…” indefinitely, open DevTools → Console for errors and verify your GitHub Pages paths.
 </div>
 </div>
 </main>
@@ -431,7 +417,7 @@
 <!-- Economic Dashboard Data & Visualization -->
 <script>
         // FRED API Configuration
-        const FRED_API_KEY = localStorage.getItem('FRED_API_KEY') || 'YOUR_FRED_API_KEY_HERE'; // Replace with your actual FRED API key
+        const FRED_API_KEY = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : ''; // Replace with your actual FRED API key
         const FRED_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
         
         // Economic Indicators from FRED
@@ -615,32 +601,21 @@
         };
         
         // Fetch data from FRED (with mock data fallback)
-        async function fetchFREDData(seriesId, limit = 12) {
-            try {
-                // Uncomment below for real FRED API integration
-                /*
-                const response = await fetch(
-                    `${FRED_BASE_URL}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=${limit}`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('FRED API request failed');
-                }
-                
-                const data = await response.json();
-                return data.observations.reverse().map(obs => ({
-                    date: obs.date,
-                    value: parseFloat(obs.value)
-                }));
-                */
-                
-                // Mock data for demonstration
-                return generateMockData(limit);
-                
-            } catch (error) {
-                console.error(`Error fetching ${seriesId}:`, error);
-                return generateMockData(limit);
+        async function fetchFREDData(seriesId, limit = 84) {
+            if (!FRED_API_KEY) {
+                throw new Error('Missing FRED API key in js/config.js (APP_CONFIG.FRED_API_KEY).');
             }
+            const url = `${FRED_BASE_URL}?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=asc&observation_start=2019-01-01&limit=${limit}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`FRED API request failed: ${response.status}`);
+            }
+            const data = await response.json();
+            const rows = (data.observations || [])
+              .filter(obs => obs && obs.value !== '.' && obs.value !== null && obs.value !== undefined)
+              .map(obs => ({ date: obs.date, value: parseFloat(obs.value) }))
+              .filter(d => Number.isFinite(d.value));
+            return rows;
         }
         
         // Generate realistic mock data
@@ -937,33 +912,10 @@ function setFREDConnected(ok){
   el.textContent = `Connected: ${ok ? '✅' : '❌'}`;
 }
 
-function wireFREDKeyUX(){
-  const input = document.getElementById('fred-key-input');
-  const save = document.getElementById('fred-save');
-  const clear = document.getElementById('fred-clear');
-  if(!input || !save || !clear) return;
-
-  // initialize
-  const existing = localStorage.getItem('FRED_API_KEY') || '';
-  input.value = existing;
-  setFREDConnected(!!existing && existing !== 'YOUR_FRED_API_KEY_HERE');
-
-  save.addEventListener('click', () => {
-    const key = (input.value || '').trim();
-    if(!key){ alert('Paste a FRED key first.'); return; }
-    localStorage.setItem('FRED_API_KEY', key);
-    setFREDConnected(true);
-    alert('Saved. Refresh the page to reload charts with the saved key.');
-  });
-
-  clear.addEventListener('click', () => {
-    localStorage.removeItem('FRED_API_KEY');
-    input.value = '';
-    setFREDConnected(false);
-    alert('Cleared. Refresh the page to stop using the saved key.');
-  });
+function wireFREDKeyUX() {
+  // No key input UI — key comes from js/config.js
+  setFREDConnected(!!(window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY));
 }
-
 document.addEventListener('DOMContentLoaded', wireFREDKeyUX);
 </script>
 </body>

@@ -142,6 +142,11 @@
       </p>
 
       <div class="toolbar">
+        <div class="card control" style="flex-wrap:wrap;">
+          <span class="pill">FRED connected: <strong id="conn">…</strong></span>
+          <span class="pill">Indicators: <strong id="count">—</strong></span>
+          <span class="pill">Last updated: <strong id="lastUpdated">—</strong></span>
+          <button class="btn primary" id="refresh" type="button">Refresh</button>
         </div>
       </div>
 
@@ -280,9 +285,8 @@
     }
   };
 
-  els.count.textContent = String(INDICATORS.length);
-
-  function getKey(){ return CONFIG_KEY || ""; }
+  if (els.count) els.count.textContent = String(INDICATORS.length);
+function getKey(){ return CONFIG_KEY || ""; }
     
   function fmtValue(v, fmt){
     const n = Number(v);
@@ -415,7 +419,7 @@
 
   async function loadAll(){
     const apiKey = getKey();
-    els.conn.textContent = apiKey ? "Yes" : "No";
+    if (els.conn) els.conn.textContent = apiKey ? "Yes" : "No";
 
     // Build cards if not built yet
     for (const s of Object.values(els.sec)) s.innerHTML = "";
@@ -425,7 +429,7 @@
 
     if (!apiKey){
       // show placeholders
-      els.lastUpdated.textContent = "—";
+      if (els.lastUpdated) els.lastUpdated.textContent = "—";
       return;
     }
 
@@ -509,16 +513,8 @@
   }
 
   // Init controls
-    els.conn.textContent = getKey() ? "Yes" : "No";
-
-      if (v) setKey(v);
-    els.conn.textContent = getKey() ? "Yes" : "No";
-    loadAll();
-  });
-      clearKey();
-    els.conn.textContent = "No";
-    loadAll();
-  });
+  els.conn.textContent = getKey() ? "Yes" : "No";
+  if (els.lastUpdated) els.lastUpdated.textContent = "—";
   els.refresh.addEventListener("click", () => loadAll());
 
   // Load on start
