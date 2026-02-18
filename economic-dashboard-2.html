@@ -601,21 +601,53 @@
         };
         
         // Fetch data from FRED (with mock data fallback)
-        async function fetchFREDData(seriesId, limit = 84) {
-            if (!FRED_API_KEY) {
-                throw new Error('Missing FRED API key in js/config.js (APP_CONFIG.FRED_API_KEY).');
-            }
-            const url = `${FRED_BASE_URL}?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&sort_order=asc&observation_start=2019-01-01&limit=${limit}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`FRED API request failed: ${response.status}`);
-            }
-            const data = await response.json();
-            const rows = (data.observations || [])
-              .filter(obs => obs && obs.value !== '.' && obs.value !== null && obs.value !== undefined)
-              .map(obs => ({ date: obs.date, value: parseFloat(obs.value) }))
-              .filter(d => Number.isFinite(d.value));
-            return rows;
+        // FRED API does not send Access-Control-Allow-Origin, so direct fetch() is blocked
+        // by the browser (CORS). We use JSONP instead — FRED supports &callback= natively.
+        function fetchFREDData(seriesId, limit) {
+            limit = limit || 84;
+            return new Promise(function(resolve, reject) {
+                var cbName = "fredCb_" + seriesId.replace(/[^a-zA-Z0-9]/g,"_") + "_" + Date.now();
+                var timer = setTimeout(function() {
+                    cleanup();
+                    reject(new Error(seriesId + " timed out"));
+                }, 15000);
+
+                function cleanup() {
+                    clearTimeout(timer);
+                    delete window[cbName];
+                    var el = document.getElementById(cbName);
+                    if (el) el.remove();
+                }
+
+                window[cbName] = function(data) {
+                    cleanup();
+                    try {
+                        var obs = (data && data.observations) ? data.observations : [];
+                        var rows = obs
+                            .filter(function(o){ return o && o.value !== "." && o.value !== null && o.value !== undefined; })
+                            .reverse()
+                            .map(function(o){ return { date: o.date, value: parseFloat(o.value) }; })
+                            .filter(function(d){ return isFinite(d.value); });
+                        if (!rows.length) throw new Error(seriesId + " no observations");
+                        resolve(rows);
+                    } catch(e) {
+                        reject(e);
+                    }
+                };
+
+                var url = "https://api.stlouisfed.org/fred/series/observations" +
+                    "?series_id=" + encodeURIComponent(seriesId) +
+                    "&api_key=" + encodeURIComponent(FRED_API_KEY) +
+                    "&file_type=json&sort_order=desc&observation_start=2019-01-01" +
+                    "&limit=" + limit +
+                    "&callback=" + cbName;
+
+                var script = document.createElement("script");
+                script.id = cbName;
+                script.src = url;
+                script.onerror = function(){ cleanup(); reject(new Error(seriesId + " script load failed")); };
+                document.head.appendChild(script);
+            });
         }
         
         // Generate realistic mock data
