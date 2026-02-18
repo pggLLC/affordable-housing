@@ -568,39 +568,27 @@
         };
         
         // Fetch data from FRED (with mock data fallback)
-        // FRED API blocks browser fetch() with CORS. We route through fred.libhack.so,
-        // a free public CORS proxy for FRED data (no API key needed on this endpoint).
+        // Data is pre-fetched daily by a GitHub Action (.github/workflows/fetch-fred-data.yml)
+        // and stored in data/fred-data.json — no CORS issues, no API key needed in browser.
+        let _fredCache = null;
+        async function _loadFredData() {
+            if (_fredCache) return _fredCache;
+            const res = await fetch("data/fred-data.json");
+            if (!res.ok) throw new Error("Could not load data/fred-data.json (HTTP " + res.status + ")");
+            _fredCache = await res.json();
+            return _fredCache;
+        }
+
         async function fetchFREDData(seriesId, limit) {
             limit = limit || 84;
-            const controller = new AbortController();
-            const timeout = setTimeout(function(){ controller.abort(); }, 15000);
-
-            const url = "https://fred.libhack.so/v0/observations" +
-                "?series_id=" + encodeURIComponent(seriesId) +
-                "&observation_start=2019-01-01" +
-                "&limit=" + limit +
-                "&sort_order=asc";
-
-            try {
-                const response = await fetch(url, {signal: controller.signal});
-                if (!response.ok) {
-                    throw new Error(seriesId + " HTTP " + response.status);
-                }
-                const data = await response.json();
-                // Proxy returns [{date, value}] directly
-                const obs = Array.isArray(data) ? data : (data.observations || []);
-                const rows = obs
-                    .filter(function(o){ return o && o.value !== "." && o.value !== null && o.value !== undefined; })
-                    .map(function(o){ return { date: o.date, value: parseFloat(o.value) }; })
-                    .filter(function(d){ return isFinite(d.value); });
-                if (!rows.length) throw new Error(seriesId + " no observations");
-                return rows;
-            } catch(error) {
-                console.error("Error fetching " + seriesId + ":", error);
-                return [];
-            } finally {
-                clearTimeout(timeout);
-            }
+            const data = await _loadFredData();
+            const entry = data.series && data.series[seriesId];
+            if (!entry || !entry.observations) throw new Error(seriesId + ": not found in cached data");
+            const rows = entry.observations
+                .filter(function(o){ return o && o.value !== "." && o.value !== null && o.value !== undefined; })
+                .map(function(o){ return { date: o.date, value: parseFloat(o.value) }; })
+                .filter(function(d){ return isFinite(d.value); });
+            return rows.slice(-limit);
         }
         
         // Generate realistic mock data

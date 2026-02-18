@@ -1,0 +1,174 @@
+{
+  "updated": "pending",
+  "note": "Run the GitHub Action (.github/workflows/fetch-fred-data.yml) to populate real data.",
+  "series": {
+    "WPUFD49207": {
+      "name": "PPI: Inputs to construction",
+      "observations": []
+    },
+    "WPUSI012011": {
+      "name": "PPI: Lumber & wood products",
+      "observations": []
+    },
+    "WPUFD4": {
+      "name": "PPI: Construction materials",
+      "observations": []
+    },
+    "PCU236115236115": {
+      "name": "PPI: New multifamily construction",
+      "observations": []
+    },
+    "CES2000000008": {
+      "name": "Construction Avg Hourly Earnings",
+      "observations": []
+    },
+    "ECIALLCIV": {
+      "name": "Employment Cost Index",
+      "observations": []
+    },
+    "HOUST": {
+      "name": "Housing Starts",
+      "observations": []
+    },
+    "PERMIT": {
+      "name": "Building Permits",
+      "observations": []
+    },
+    "CSUSHPISA": {
+      "name": "Case-Shiller Home Price Index",
+      "observations": []
+    },
+    "MSPUS": {
+      "name": "Median Sales Price of Houses",
+      "observations": []
+    },
+    "RHORUSQ156N": {
+      "name": "Homeownership Rate",
+      "observations": []
+    },
+    "RRVRUSQ156N": {
+      "name": "Rental Vacancy Rate",
+      "observations": []
+    },
+    "DGS10": {
+      "name": "10-Year Treasury Yield",
+      "observations": []
+    },
+    "DGS2": {
+      "name": "2-Year Treasury Yield",
+      "observations": []
+    },
+    "DFF": {
+      "name": "Effective Fed Funds Rate",
+      "observations": []
+    },
+    "MORTGAGE30US": {
+      "name": "30-Year Fixed Mortgage Rate",
+      "observations": []
+    },
+    "BAA10Y": {
+      "name": "Baa-10Y Treasury Spread",
+      "observations": []
+    },
+    "T10Y2Y": {
+      "name": "Yield Curve (10Y-2Y)",
+      "observations": []
+    },
+    "UNRATE": {
+      "name": "Unemployment Rate",
+      "observations": []
+    },
+    "PAYEMS": {
+      "name": "Nonfarm Payrolls",
+      "observations": []
+    },
+    "CIVPART": {
+      "name": "Labor Force Participation",
+      "observations": []
+    },
+    "CES0500000003": {
+      "name": "Average Hourly Earnings",
+      "observations": []
+    },
+    "JTSJOL": {
+      "name": "Job Openings",
+      "observations": []
+    },
+    "ICSA": {
+      "name": "Initial Jobless Claims",
+      "observations": []
+    },
+    "WPU10170503": {
+      "name": "Steel Reinforcing Bar",
+      "observations": []
+    },
+    "PCU33142033142012": {
+      "name": "Copper Wire & Cable",
+      "observations": []
+    },
+    "PCU32121132121103": {
+      "name": "Softwood Lumber",
+      "observations": []
+    },
+    "WPU0811": {
+      "name": "Framing Lumber",
+      "observations": []
+    },
+    "WPU0812": {
+      "name": "Plywood Sheathing",
+      "observations": []
+    },
+    "PCU32731327313": {
+      "name": "Concrete Products",
+      "observations": []
+    },
+    "WPU13310101": {
+      "name": "Portland Cement",
+      "observations": []
+    },
+    "PCU32732032732021": {
+      "name": "Ready-Mix Concrete",
+      "observations": []
+    },
+    "PCU32742032742012": {
+      "name": "Gypsum Drywall",
+      "observations": []
+    },
+    "WPU057303": {
+      "name": "Diesel Fuel",
+      "observations": []
+    },
+    "CES2000000003": {
+      "name": "Construction Avg Hourly Wage",
+      "observations": []
+    },
+    "PCU331111331111": {
+      "name": "Steel Mill Products PPI",
+      "observations": []
+    },
+    "WPU10210301": {
+      "name": "Copper Building Wire",
+      "observations": []
+    },
+    "PCU3313153313153": {
+      "name": "Aluminum Products PPI",
+      "observations": []
+    },
+    "PCU32412132412121": {
+      "name": "Asphalt Paving",
+      "observations": []
+    },
+    "PCU32721432721412": {
+      "name": "Insulation Materials",
+      "observations": []
+    },
+    "WPU0531": {
+      "name": "Natural Gas",
+      "observations": []
+    },
+    "CPIAUCSL": {
+      "name": "CPI",
+      "observations": []
+    }
+  }
+}
