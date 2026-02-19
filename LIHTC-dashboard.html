@@ -1,19 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LIHTC Dashboard</title>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LIHTC Dashboard</title>
+<link href="css/styles.css" rel="stylesheet"/>
 
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="stylesheet" href="unified-theme.css" />
-  <link rel="stylesheet" href="css/responsive-nav.css" />
-
-  <!-- External libs (same approach as existing pages) -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://d3js.org/topojson.v3.min.js"></script>
-
-  <style>
+<link href="css/responsive-nav.css" rel="stylesheet"/>
+<!-- External libs (same approach as existing pages) -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<style>
     body { background: var(--mcm-dark, #121212); color: var(--mcm-offwhite, #f1f1f1); }
     main#main-content { max-width: 1400px; margin: 0 auto; padding: 6.5rem 1.5rem 4rem; }
 
@@ -143,194 +140,155 @@
     .ok { color: #a6f3bf; }
     .bad { color: #ffb6b6; }
   </style>
-
-  <!-- Data by year (expects these files in /js/) -->
-  <script src="js/state-allocations-2026.js"></script>
-  <script src="js/state-allocations-2025.js"></script>
-  <script src="js/state-allocations-2024.js"></script>
-
-<style>
-/* Make LIHTC map area full-width and taller */
-body[data-page="LIHTC-dashboard.html"] .container,
-body[data-page="LIHTC-dashboard.html"] .dashboard-container,
-body[data-page="LIHTC-dashboard.html"] main{
-  max-width: 1400px !important;
-}
-body[data-page="LIHTC-dashboard.html"] #map,
-body[data-page="LIHTC-dashboard.html"] #stateMap,
-body[data-page="LIHTC-dashboard.html"] #allocationMap,
-body[data-page="LIHTC-dashboard.html"] .map-container{
-  width: 100% !important;
-}
-body[data-page="LIHTC-dashboard.html"] #map,
-body[data-page="LIHTC-dashboard.html"] #stateMap,
-body[data-page="LIHTC-dashboard.html"] #allocationMap{
-  height: 680px !important;
-}
-@media (max-width: 900px){
-  body[data-page="LIHTC-dashboard.html"] #map,
-  body[data-page="LIHTC-dashboard.html"] #stateMap,
-  body[data-page="LIHTC-dashboard.html"] #allocationMap{
-    height: 520px !important;
-  }
-}
-</style>
-
+<!-- Data by year (expects these files in /js/) -->
+<script src="js/state-allocations-2026.js"></script>
+<script src="js/state-allocations-2025.js"></script>
+<script src="js/state-allocations-2024.js"></script>
+<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
 </head>
-
-<body data-page="LIHTC-dashboard.html" >
-  <script src="js/main.js"></script>
-  <script src="js/responsive-nav.js"></script>
-  <script src="navigation.js"></script>
-
-  <main id="main-content">
-    <section class="hero">
-      <h1>LIHTC Dashboard</h1>
-      <p>One-page workspace combining the Dashboard, Regional Analysis, and State Allocation Map. Each section runs the original page inside an embedded frame to keep all maps, tables, dropdowns, exports, and tooltips working without conflicts.</p>
-      <div class="sub">Distribution / allocation of LIHTC by region and state.</div>
-    </section>
-
-    <section class="card">
-      <h2>Filters</h2>
-      <div class="controls">
-        <div>
-          <label for="year-select">Year</label>
-          <select id="year-select">
-            <option value="2026" selected>2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
-        </div>
-        <div>
-          <label for="mode-select">Map mode</label>
-          <select id="mode-select">
-            <option value="region" selected>Regional view</option>
-            <option value="allocation">State allocations (per-capita intensity)</option>
-          </select>
-        </div>
-        <div>
-          <label for="region-select">Region</label>
-          <select id="region-select">
-            <option value="all" selected>All regions (National)</option>
-            <option value="northeast">Northeast</option>
-            <option value="south">South</option>
-            <option value="midwest">Midwest</option>
-            <option value="west">West</option>
-          </select>
-        </div>
-        <div>
-          <label for="state-select">State</label>
-          <select id="state-select">
-            <option value="all" selected>All states</option>
-          </select>
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <label for="state-search">Quick search</label>
-          <input id="state-search" placeholder="Type a state name or abbr (e.g., CO)" />
-        </div>
-      </div>
-
-      <div class="statusbar">
-        <span class="pill" id="status-dataset">Dataset: —</span>
-        <span class="pill" id="status-loaded">Loaded: —</span>
-      </div>
-
-      <div class="stats">
-        <div class="stat">
-          <div class="k">Total allocation</div>
-          <div class="v" id="stat-total">$0</div>
-        </div>
-        <div class="stat">
-          <div class="k">Per-capita (weighted)</div>
-          <div class="v" id="stat-percap">$0</div>
-        </div>
-        <div class="stat">
-          <div class="k">States included</div>
-          <div class="v" id="stat-states">0</div>
-        </div>
-        <div class="stat">
-          <div class="k">% of national</div>
-          <div class="v" id="stat-share">0%</div>
-        </div>
-      </div>
-    </section>
-
-    <div class="grid">
-      <section class="card" id="map-card">
-        <h2>Interactive map</h2>
-        <div class="muted small">Switch the map between regional coloring and state allocation intensity. Legend updates automatically. Tooltips show state totals and shares.</div>
-
-        <div id="map-wrap">
-          <div class="map-legend" id="map-legend"></div>
-          <div class="tooltip" id="map-tooltip">
-            <h4 id="tt-title"></h4>
-            <div id="tt-body"></div>
-          </div>
-          <div id="us-map"></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Regional allocation summary</h2>
-        <div class="muted small">Totals and shares update when you select a year and region.</div>
-        <div class="tablewrap">
-          <table>
-            <thead>
-              <tr>
-                <th data-sort="region">Region</th>
-                <th class="right" data-sort="states">States</th>
-                <th class="right" data-sort="alloc">Total allocation</th>
-                <th class="right" data-sort="share">% of national</th>
-                <th class="right" data-sort="percap">Per-capita</th>
-              </tr>
-            </thead>
-            <tbody id="region-summary-body"></tbody>
-          </table>
-        </div>
-
-        <h2 style="margin-top:1.2rem;">Top 10 states (selection)</h2>
-        <div class="muted small">Top 10 by allocation within the selected region/state (or national if “All”).</div>
-        <div class="tablewrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th data-sort="name">State</th>
-                <th data-sort="abbr">Abbr</th>
-                <th class="right" data-sort="allocation">Allocation</th>
-                <th class="right" data-sort="perCapita">Per-capita</th>
-                <th class="right" data-sort="share">% of national</th>
-              </tr>
-            </thead>
-            <tbody id="top10-body"></tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" style="margin-top:1.25rem;">
-      <h2>State table</h2>
-      <div class="muted small">Sortable. Filtered by year, region, state, and search. Shows up to 50 rows.</div>
-      <div class="tablewrap">
-        <table id="states-table">
-          <thead>
-            <tr>
-              <th data-sort="rank">#</th>
-              <th data-sort="name">State</th>
-              <th data-sort="abbr">Abbr</th>
-              <th class="right" data-sort="population">Population</th>
-              <th class="right" data-sort="allocation">Allocation</th>
-              <th class="right" data-sort="perCapita">Per-capita</th>
-              <th class="right" data-sort="share">% of national</th>
-            </tr>
-          </thead>
-          <tbody id="states-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <script>
+<body>
+<script src="js/main.js"></script>
+<script src="js/responsive-nav.js"></script>
+<script src="js/navigation.js"></script>
+<main id="main-content">
+<section class="hero">
+<h1>LIHTC Dashboard</h1>
+<p>One-page workspace combining the Dashboard, Regional Analysis, and State Allocation Map. Each section runs the original page inside an embedded frame to keep all maps, tables, dropdowns, exports, and tooltips working without conflicts.</p>
+<div class="sub">Distribution / allocation of LIHTC by region and state.</div>
+</section>
+<section class="card">
+<h2>Filters</h2>
+<div class="controls">
+<div>
+<label for="year-select">Year</label>
+<select id="year-select">
+<option selected="" value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+</select>
+</div>
+<div>
+<label for="mode-select">Map mode</label>
+<select id="mode-select">
+<option selected="" value="region">Regional view</option>
+<option value="allocation">State allocations (per-capita intensity)</option>
+</select>
+</div>
+<div>
+<label for="region-select">Region</label>
+<select id="region-select">
+<option selected="" value="all">All regions (National)</option>
+<option value="northeast">Northeast</option>
+<option value="south">South</option>
+<option value="midwest">Midwest</option>
+<option value="west">West</option>
+</select>
+</div>
+<div>
+<label for="state-select">State</label>
+<select id="state-select">
+<option selected="" value="all">All states</option>
+</select>
+</div>
+<div style="grid-column: 1 / -1;">
+<label for="state-search">Quick search</label>
+<input id="state-search" placeholder="Type a state name or abbr (e.g., CO)"/>
+</div>
+</div>
+<div class="statusbar">
+<span class="pill" id="status-dataset">Dataset: —</span>
+<span class="pill" id="status-loaded">Loaded: —</span>
+</div>
+<div class="stats">
+<div class="stat">
+<div class="k">Total allocation</div>
+<div class="v" id="stat-total">$0</div>
+</div>
+<div class="stat">
+<div class="k">Per-capita (weighted)</div>
+<div class="v" id="stat-percap">$0</div>
+</div>
+<div class="stat">
+<div class="k">States included</div>
+<div class="v" id="stat-states">0</div>
+</div>
+<div class="stat">
+<div class="k">% of national</div>
+<div class="v" id="stat-share">0%</div>
+</div>
+</div>
+</section>
+<div class="grid">
+<section class="card" id="map-card">
+<h2>Interactive map</h2>
+<div class="muted small">Switch the map between regional coloring and state allocation intensity. Legend updates automatically. Tooltips show state totals and shares.</div>
+<div id="map-wrap">
+<div class="map-legend" id="map-legend"></div>
+<div class="tooltip" id="map-tooltip">
+<h4 id="tt-title"></h4>
+<div id="tt-body"></div>
+</div>
+<div id="us-map"></div>
+</div>
+</section>
+<section class="card">
+<h2>Regional allocation summary</h2>
+<div class="muted small">Totals and shares update when you select a year and region.</div>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th data-sort="region">Region</th>
+<th class="right" data-sort="states">States</th>
+<th class="right" data-sort="alloc">Total allocation</th>
+<th class="right" data-sort="share">% of national</th>
+<th class="right" data-sort="percap">Per-capita</th>
+</tr>
+</thead>
+<tbody id="region-summary-body"></tbody>
+</table>
+</div>
+<h2 style="margin-top:1.2rem;">Top 10 states (selection)</h2>
+<div class="muted small">Top 10 by allocation within the selected region/state (or national if “All”).</div>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th data-sort="name">State</th>
+<th data-sort="abbr">Abbr</th>
+<th class="right" data-sort="allocation">Allocation</th>
+<th class="right" data-sort="perCapita">Per-capita</th>
+<th class="right" data-sort="share">% of national</th>
+</tr>
+</thead>
+<tbody id="top10-body"></tbody>
+</table>
+</div>
+</section>
+</div>
+<section class="card" style="margin-top:1.25rem;">
+<h2>State table</h2>
+<div class="muted small">Sortable. Filtered by year, region, state, and search. Shows up to 50 rows.</div>
+<div class="tablewrap">
+<table id="states-table">
+<thead>
+<tr>
+<th data-sort="rank">#</th>
+<th data-sort="name">State</th>
+<th data-sort="abbr">Abbr</th>
+<th class="right" data-sort="population">Population</th>
+<th class="right" data-sort="allocation">Allocation</th>
+<th class="right" data-sort="perCapita">Per-capita</th>
+<th class="right" data-sort="share">% of national</th>
+</tr>
+</thead>
+<tbody id="states-body"></tbody>
+</table>
+</div>
+</section>
+</main>
+<script>
     const REGIONS = {
       northeast: ['CT','ME','MA','NH','RI','VT','NJ','NY','PA'],
       south: ['DE','FL','GA','MD','NC','SC','VA','DC','WV','AL','KY','MS','TN','AR','LA','OK','TX'],
@@ -783,5 +741,6 @@ body[data-page="LIHTC-dashboard.html"] #allocationMap{
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
+<script src="js/contrast-guard.js"></script>
 </body>
 </html>
