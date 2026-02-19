@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Colorado Affordable Housing Deep Dive - LIHTC Analytics Hub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="css/site-theme.css"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Chart.js for existing canvases -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Legibility + spacing guardrails (keeps this page readable even if other CSS changes) */
+    :root{
+      --bg:#0b0f14;
+      --surface:#111a24;
+      --surface2:#0e141d;
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.72);
+      --link:rgba(180,210,255,.95);
+    }
+    html,body{background:var(--bg) !important; color:var(--text) !important; font-size:0.85rem; line-height:1.45;}
+    a{color:var(--link) !important;}
+    /* tighten hero padding vs the old huge top padding */
+    .page-container{max-width:1200px; margin:0 auto; padding: 6.25rem 1.5rem 3rem;}
+    @media (max-width: 700px){ .page-container{padding: 5.25rem 1rem 2.5rem;} }
+    #coMap{height: 600px; width: 100%; border-radius: 10px; border: 1px solid var(--border); overflow:hidden;}
+    .map-legend{background: rgba(17,26,36,.96); color: rgba(255,255,255,.9); padding: 10px 12px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(0,0,0,.35); font-size: 12px; line-height: 1.3;}
+    .map-legend .row{display:flex; align-items:center; gap:8px; margin:6px 0;}
+    .dot{width:10px; height:10px; border-radius:50%; display:inline-block;}
+    .swatch{width:14px; height:10px; border-radius:3px; display:inline-block; border:1px solid rgba(255,255,255,.18);}
+    .map-controls{display:flex; flex-wrap:wrap; gap:.65rem; align-items:center; margin: .75rem 0 .25rem;}
+    .map-controls label{display:flex; gap:.35rem; align-items:center; color: var(--muted); font-size:.9rem;}
+
+    /* Leaflet tooltip/popup readability on dark theme */
+    .leaflet-tooltip{background: rgba(15,22,32,0.92) !important; color: rgba(255,255,255,0.92) !important;
+      border: 1px solid rgba(255,255,255,0.14) !important; box-shadow: 0 6px 20px rgba(0,0,0,0.35) !important;}
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip{background: rgba(17,26,36,0.98) !important; color: rgba(255,255,255,0.92) !important;}
+  </style>
+
+  <style>
+    /* KPI grid (economic-dashboard style) */
+    .kpi-grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .75rem;
+      margin: .25rem 0 1rem;
+    }
+    @media (max-width: 980px){
+      .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 560px){
+      .kpi-grid{ grid-template-columns: 1fr; }
+    }
+    .kpi-card{
+      background: var(--surface, rgba(17,26,36,.95));
+      border: 1px solid var(--border, rgba(255,255,255,.12));
+      border-radius: 14px;
+      padding: .85rem .9rem;
+    }
+    .kpi-value{
+      font-weight: 750;
+      font-size: 1.15rem;
+      line-height: 1.1;
+      color: var(--text, rgba(255,255,255,.92));
+      margin-bottom: .25rem;
+      letter-spacing: .2px;
+    }
+    .kpi-label{
+      font-size: .85rem;
+      color: var(--muted, rgba(255,255,255,.72));
+      line-height: 1.25;
+      margin-bottom: .35rem;
+    }
+    .kpi-source a{
+      font-size: .78rem;
+      color: var(--link, rgba(180,210,255,.95));
+      text-decoration: none;
+    }
+    .kpi-source a:hover{ text-decoration: underline; }
+  </style>
+
+
+<style>
+/* Compact typography aligned with economic-dashboard.html */
+:root{
+  --font-size-body: 0.9rem;
+  --font-size-small: 0.78rem;
+  --font-size-heading: 1.05rem;
+  --font-size-title: 1.35rem;
+  --font-size-kpi: 1.1rem;
+}
+
+body{
+  font-size: var(--font-size-body) !important;
+  line-height: 1.45 !important;
+}
+
+h1{
+  font-size: var(--font-size-title) !important;
+  font-weight: 650 !important;
+  margin-bottom: .4rem !important;
+}
+
+h2{
+  font-size: var(--font-size-heading) !important;
+  font-weight: 600 !important;
+  margin-bottom: .35rem !important;
+}
+
+h3{
+  font-size: calc(var(--font-size-heading) * 0.95) !important;
+}
+
+p, li, span{
+  font-size: var(--font-size-body) !important;
+}
+
+.small, .chart-subtitle, .stat-label{
+  font-size: var(--font-size-small) !important;
+}
+
+.stat-value, .kpi-value{
+  font-size: var(--font-size-kpi) !important;
+  font-weight: 700 !important;
+}
+
+.stat-label, .kpi-label{
+  font-size: var(--font-size-small) !important;
+}
+
+.chart-title{
+  font-size: var(--font-size-heading) !important;
+}
+
+.chart-card{
+  padding: .85rem .9rem !important;
+}
+
+.section{
+  margin: .85rem 0 1rem !important;
+}
+
+</style>
+
+</head>
+
+<body data-page="colorado-deep-dive.html">
+  <div id="site-header"></div>
+
+  <div class="page-container">
+    
+<div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-primary); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1.5rem;">
+            Colorado Market Deep Dive
+        </div>
+<h1 style="font-size: 3.5rem; margin-bottom: 1rem;">Colorado Affordable Housing Market Analysis</h1>
+<p style="font-size: 1.25rem; color: var(--color-text-light); line-height: 1.7; margin-bottom: 3rem;">
+            Comprehensive analysis of DDAs, QCTs, LIHTC projects, market dynamics, concessions, foreclosures, and comparative performance
+        </p>
+<!-- Market Overview Stats -->
+<div class="hero-stats" style="margin: 3rem 0;">
+<div class="stat-card">
+<div class="stat-value">$287M</div>
+<div class="stat-label">Annual LIHTC Allocation</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">78</div>
+<div class="stat-label">Active Projects</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">7.6%</div>
+<div class="stat-label">Denver Vacancy Rate (Q4 2025)</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">$169</div>
+<div class="stat-label">Avg Monthly Concession</div>
+</div>
+
+
+    <section class="section" aria-label="Key indicators">
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-value">$287M</div>
+      <div class="kpi-label">Annual LIHTC Allocation</div>
+      <div class="kpi-source"><a href="https://www.novoco.com/resource-centers/affordable-housing-tax-credits" target="_blank" rel="noopener">Source</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">78</div>
+      <div class="kpi-label">Active Projects</div>
+      <div class="kpi-source"><a href="https://www.huduser.gov/lihtc/" target="_blank" rel="noopener">Source</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">7.6%</div>
+      <div class="kpi-label">Denver Vacancy Rate (Q4 2025)</div>
+      <div class="kpi-source"><a href="https://www.cbre.com/insights/books/us-real-estate-market-outlook-2025/multifamily" target="_blank" rel="noopener">Source</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">$169</div>
+      <div class="kpi-label">Avg Monthly Concession</div>
+      <div class="kpi-source"><a href="https://www.cbre.com/insights/books/us-real-estate-market-outlook-2025/multifamily" target="_blank" rel="noopener">Source</a></div>
+    </div>
+  </div>
+</section>
+
+<h2>Interactive Map: DDAs, QCTs &amp; LIHTC Projects</h2>
+    <div class="chart-card" style="margin: 1.5rem 0;">
+      <div class="chart-header">
+        <h3 class="chart-title">Colorado LIHTC Opportunity Zones Map</h3>
+        <p class="chart-subtitle">Zoomable Colorado-only map with counties, places, LIHTC projects (HUD), and HUD 2026 QCT/DDA overlays.</p>
+      </div>
+
+      <div class="map-controls" role="group" aria-label="Map layers and filters">
+        <label><input type="checkbox" id="layerCounties" checked> Counties</label>
+        <label><input type="checkbox" id="layerPlaces"> Places</label>
+        <label><input type="checkbox" id="layerQCT" checked> QCT overlay (2026)</label>
+        <label><input type="checkbox" id="layerDDA" checked> DDA overlay (2026)</label>
+        <label><input type="checkbox" id="filterQCT"> Only QCT projects</label>
+        <label><input type="checkbox" id="filterDDA"> Only DDA projects</label>
+      </div>
+
+      <div id="coMap"></div>
+
+      <div style="margin-top: 1rem; padding: 1rem; background: var(--color-background-alt, rgba(17,26,36,.65)); border-radius: 8px; border: 1px solid var(--border);">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem;">
+          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
+            <span class="swatch" style="background:rgba(255,200,90,.20); border-color:rgba(255,200,90,.45)"></span>
+            <span><strong>DDA Zones</strong> — 30% basis boost</span>
+          </div>
+          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
+            <span class="swatch" style="background:rgba(120,255,170,.22); border-color:rgba(120,255,170,.45)"></span>
+            <span><strong>QCT Zones</strong> — 30% basis boost</span>
+          </div>
+          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
+            <span class="dot" style="background:#5fa8ff;"></span>
+            <span><strong>LIHTC Projects</strong> — HUD LIHTC Database (mapped)</span>
+          </div>
+        </div>
+
+        <div style="margin-top:.75rem; font-size: 12px; color: var(--muted); line-height:1.5;">
+          <strong>Data sources:</strong>
+          <a href="https://www.policymap.com/data/sources/hud-lihtc" target="_blank" rel="noopener">PolicyMap: HUD LIHTC</a> •
+          <a href="https://www.huduser.gov/lihtc/" target="_blank" rel="noopener">HUD LIHTC Database</a> •
+          <a href="https://egis.hud.gov/arcgis/rest/services/affht/AffhtMapService/MapServer/30" target="_blank" rel="noopener">HUD eGIS LIHTC map service</a> •
+          <a href="https://www.huduser.gov/portal/sadda/sadda_qct.html" target="_blank" rel="noopener">HUD QCT/DDA</a>
+        </div>
+      </div>
+    </div>
+
+    <h2>Area Median Income (AMI) Analysis</h2>
+<div class="dashboard-grid" style="margin: 2rem 0;">
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Denver Metro AMI Breakdown (2025)</h3>
+<p class="chart-subtitle">Income limits by household size</p>
+</div>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>AMI Level</th>
+<th>1 Person</th>
+<th>2 Person</th>
+<th>3 Person</th>
+<th>4 Person</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>30% AMI</strong> (Extremely Low)</td>
+<td>$26,100</td>
+<td>$29,850</td>
+<td>$33,600</td>
+<td>$37,350</td>
+</tr>
+<tr>
+<td><strong>50% AMI</strong> (Very Low)</td>
+<td>$43,450</td>
+<td>$49,650</td>
+<td>$55,850</td>
+<td>$62,050</td>
+</tr>
+<tr>
+<td><strong>60% AMI</strong> (LIHTC Standard)</td>
+<td>$52,140</td>
+<td>$59,580</td>
+<td>$67,020</td>
+<td>$74,460</td>
+</tr>
+<tr style="background: rgba(52, 152, 219, 0.1);">
+<td><strong>80% AMI</strong> (Low Income)</td>
+<td>$66,300</td>
+<td>$75,750</td>
+<td>$85,200</td>
+<td>$94,650</td>
+</tr>
+<tr>
+<td><strong>100% AMI</strong> (Median)</td>
+<td>$86,870</td>
+<td>$99,300</td>
+<td>$111,700</td>
+<td>$124,100</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="margin-top: 1rem; padding: 1rem; background: rgba(243, 156, 18, 0.1); border-radius: 4px; border-left: 3px solid var(--color-warning);">
+<p style="font-size: 0.875rem; margin: 0; line-height: 1.6;">
+<strong>Context:</strong> In Denver, a single person making $31.88/hour ($66,300 annually) is considered "low income" at 80% AMI. This creates significant affordable housing demand even among working professionals.
+                    </p>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Colorado Housing Need by AMI Level</h3>
+<p class="chart-subtitle">Estimated households vs. available units</p>
+</div>
+<div style="height: 300px; position: relative;">
+<canvas id="ami-need-chart"></canvas>
+</div>
+</div>
+</div>
+<div class="chart-card" style="margin: 2rem 0;">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">AMI Variations Across Colorado Counties</h3>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>County</th>
+<th>1-Person AMI (100%)</th>
+<th>4-Person AMI (100%)</th>
+<th>60% AMI Max Income</th>
+<th>Relative Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Denver</strong></td>
+<td>$86,870</td>
+<td>$124,100</td>
+<td>$74,460</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>Boulder</strong></td>
+<td>$92,400</td>
+<td>$131,900</td>
+<td>$79,140</td>
+<td>Very High</td>
+</tr>
+<tr>
+<td><strong>El Paso (C. Springs)</strong></td>
+<td>$78,200</td>
+<td>$111,700</td>
+<td>$67,020</td>
+<td>Moderate</td>
+</tr>
+<tr>
+<td><strong>Larimer (Ft. Collins)</strong></td>
+<td>$84,300</td>
+<td>$120,400</td>
+<td>$72,240</td>
+<td>Moderate-High</td>
+</tr>
+<tr>
+<td><strong>Pueblo</strong></td>
+<td>$61,500</td>
+<td>$87,900</td>
+<td>$52,740</td>
+<td>Lower</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h2>Multifamily Concessions Analysis</h2>
+<div style="background: rgba(192, 57, 43, 0.05); padding: 2rem; border-left: 4px solid var(--color-error); border-radius: 4px; margin: 2rem 0;">
+<h3 style="color: var(--color-error); margin-bottom: 1rem;">Critical Market Alert: Record Concessions</h3>
+<p style="line-height: 1.7; margin-bottom: 1rem;">
+                Metro Denver reached 7.6% vacancy in Q4 2025—the highest rate in 16 years—with concessions averaging $169 per month (9.5% of gross rent), equivalent to 4-5 weeks of free rent. This represents the highest concession level in the 21-year history of Apartment Insights tracking.
+            </p>
+<p style="line-height: 1.7; margin: 0;">
+<strong>Impact:</strong> New luxury properties offering up to 3 months free rent, creating downward pressure on older Class B/C properties throughout the metro.
+            </p>
+</div>
+<div class="dashboard-grid">
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Denver Metro Concession Trends</h3>
+<p class="chart-subtitle">Average monthly concession value 2022-2025</p>
+</div>
+<div style="height: 300px; position: relative;">
+<canvas id="concessions-chart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Concessions by Property Class</h3>
+<p class="chart-subtitle">Q4 2025 averages</p>
+</div>
+<div style="padding: 2rem 0;">
+<div style="margin-bottom: 2rem;">
+<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+<span><strong>Class A (2020+)</strong></span>
+<span style="color: var(--color-error); font-weight: 700;">$285/month</span>
+</div>
+<div style="background: var(--color-background-alt); border-radius: 4px; height: 8px;">
+<div style="background: var(--color-error); width: 95%; height: 100%; border-radius: 4px;"></div>
+</div>
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">Up to 3 months free rent</div>
+</div>
+<div style="margin-bottom: 2rem;">
+<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+<span><strong>Class B (2000-2019)</strong></span>
+<span style="color: var(--color-warning); font-weight: 700;">$150/month</span>
+</div>
+<div style="background: var(--color-background-alt); border-radius: 4px; height: 8px;">
+<div style="background: var(--color-warning); width: 50%; height: 100%; border-radius: 4px;"></div>
+</div>
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">1-2 months free + gift cards</div>
+</div>
+<div style="margin-bottom: 2rem;">
+<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+<span><strong>Class C (pre-2000)</strong></span>
+<span style="color: var(--color-info); font-weight: 700;">$95/month</span>
+</div>
+<div style="background: var(--color-background-alt); border-radius: 4px; height: 8px;">
+<div style="background: var(--color-info); width: 32%; height: 100%; border-radius: 4px;"></div>
+</div>
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">Selective incentives + waived fees</div>
+</div>
+</div>
+</div>
+</div>
+<div class="chart-card" style="margin: 2rem 0;">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">Statewide Concession Comparison</h3>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>Market</th>
+<th>Avg Concession</th>
+<th>% of Gross Rent</th>
+<th>Free Weeks Equivalent</th>
+<th>Primary Driver</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: rgba(192, 57, 43, 0.05);">
+<td><strong>Denver Metro</strong></td>
+<td>$169</td>
+<td>9.5%</td>
+<td>4-5 weeks</td>
+<td>Oversupply (19K units 2024)</td>
+</tr>
+<tr>
+<td><strong>Colorado Springs</strong></td>
+<td>$95</td>
+<td>6.2%</td>
+<td>3 weeks</td>
+<td>Moderate supply increase</td>
+</tr>
+<tr>
+<td><strong>Fort Collins</strong></td>
+<td>$110</td>
+<td>7.1%</td>
+<td>3.5 weeks</td>
+<td>Student housing competition</td>
+</tr>
+<tr>
+<td><strong>Boulder</strong></td>
+<td>$125</td>
+<td>6.8%</td>
+<td>3.5 weeks</td>
+<td>New luxury supply</td>
+</tr>
+<tr>
+<td><strong>Pueblo</strong></td>
+<td>$45</td>
+<td>4.1%</td>
+<td>2 weeks</td>
+<td>Limited new construction</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h2>Foreclosure &amp; Distress Analysis</h2>
+<div class="dashboard-grid">
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Colorado Foreclosure Trends</h3>
+<p class="chart-subtitle">Monthly foreclosure filings 2023-2026</p>
+</div>
+<div style="height: 300px; position: relative;">
+<canvas id="foreclosure-chart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Foreclosure Risk Assessment</h3>
+<p class="chart-subtitle">Current market health indicators</p>
+</div>
+<div style="padding: 2rem 0;">
+<div style="margin-bottom: 2rem;">
+<div style="font-weight: 600; margin-bottom: 0.5rem;">Overall Risk Level</div>
+<div style="font-size: 2rem; color: var(--color-success); font-weight: 700; margin-bottom: 0.5rem;">LOW</div>
+<div style="font-size: 0.875rem; color: var(--color-text-light);">Well below crisis levels; returning to normal</div>
+</div>
+<div style="margin-bottom: 1.5rem;">
+<div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-success);">✓ Equity Cushion</div>
+<div style="font-size: 0.875rem; color: var(--color-text-light);">Most homeowners have significant equity protecting against distress sales</div>
+</div>
+<div style="margin-bottom: 1.5rem;">
+<div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-success);">✓ Employment</div>
+<div style="font-size: 0.875rem; color: var(--color-text-light);">Unemployment at 3.7% (4th lowest among 50 largest markets)</div>
+</div>
+<div>
+<div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--color-warning);">⚠ Normalizing</div>
+<div style="font-size: 0.875rem; color: var(--color-text-light);">Filings rising but still 56% of pre-pandemic normal levels</div>
+</div>
+</div>
+</div>
+</div>
+<div style="background: rgba(39, 174, 96, 0.05); padding: 2rem; border-left: 4px solid var(--color-success); border-radius: 4px; margin: 2rem 0;">
+<h3 style="color: var(--color-success); margin-bottom: 1rem;">Good News: Market Normalization, Not Crisis</h3>
+<p style="line-height: 1.7; margin-bottom: 1rem;">
+                While REO (Real Estate Owned) foreclosures are returning after 7+ years absence, this represents market normalization rather than distress. Foreclosure filings remain well below pre-pandemic norms and a fraction of 2008 crisis levels.
+            </p>
+<p style="line-height: 1.7; margin: 0;">
+<strong>Key Factor:</strong> Strong equity positions (most homeowners have substantial equity) and more disciplined lending practices continue to limit systemic risk.
+            </p>
+</div>
+<h2>Consumer Confidence &amp; Market Sentiment</h2>
+<div class="dashboard-grid">
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Colorado Housing Market Confidence</h3>
+<p class="chart-subtitle">Buyer and seller sentiment index</p>
+</div>
+<div style="height: 300px; position: relative;">
+<canvas id="confidence-chart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<div class="chart-header">
+<h3 class="chart-title">Market Dynamics Shift</h3>
+<p class="chart-subtitle">2025 vs 2026 outlook</p>
+</div>
+<div style="padding: 2rem 0;">
+<div style="margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border);">
+<div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--color-primary);">2025 Recap</div>
+<ul style="font-size: 0.9375rem; line-height: 1.7; margin: 0; padding-left: 1.5rem;">
+<li>Prices fell 5.2% in Colorado Springs</li>
+<li>Denver rents down 4.8% YoY</li>
+<li>Days on market increased significantly</li>
+<li>Sellers competing more aggressively</li>
+</ul>
+</div>
+<div>
+<div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--color-success);">2026 Outlook</div>
+<ul style="font-size: 0.9375rem; line-height: 1.7; margin: 0; padding-left: 1.5rem;">
+<li>More of the same: balanced market continuing</li>
+<li>New construction drops 34% (supply relief)</li>
+<li>Modest price appreciation expected (+1-2%)</li>
+<li>Buyers have more negotiating power</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<h2>Colorado vs National Comparison</h2>
+<div style="background: rgba(192, 57, 43, 0.05); padding: 2.5rem; border-left: 4px solid var(--color-error); border-radius: 8px; margin: 2rem 0;">
+<h3 style="color: var(--color-error); margin-bottom: 1rem;">⚠️ Critical Analysis: Colorado Pricing Pressure vs. National Trends</h3>
+<p style="font-size: 1.125rem; line-height: 1.8; margin-bottom: 1.5rem;">
+<strong>Why is Colorado experiencing pricing pressure while the nation stabilizes at $0.87?</strong>
+</p>
+<p style="line-height: 1.8; margin-bottom: 1.5rem;">
+                Based on late 2025 and early 2026 data, LIHTC investors are acting with <strong>caution toward the Colorado market</strong>, driven by high interest rates, rising construction costs, and a "cautious at best, jittery at worst" equity market. While Denver metro has technically stabilized, it's marked by:
+            </p>
+<ul style="line-height: 1.8; margin-bottom: 1.5rem;">
+<li><strong>5.2% decline in median home prices</strong> (2025)</li>
+<li><strong>Increased inventory</strong> and longer days on market</li>
+<li><strong>Shift to buyer's market</strong> dynamics</li>
+<li><strong>Record concessions</strong> ($169/month avg - highest in 21 years)</li>
+</ul>
+<p style="line-height: 1.8; margin-bottom: 1rem;">
+<strong>Key Insight:</strong> The pressure on pricing in rural areas like the Western Slope is <em>not</em> "for no reason" or Denver-specific fear. Instead, it's driven by a combination of <strong>macroeconomic factors affecting the entire state</strong>.
+            </p>
+</div>
+<div class="chart-card" style="margin: 2rem 0;">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">Key Factors Driving Statewide Pricing Pressure</h3>
+<div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--color-background-alt); border-left: 3px solid var(--color-primary); border-radius: 4px;">
+<h4 style="margin-bottom: 1rem; color: var(--color-primary);">1. Broad Investor Caution (Not Just Denver)</h4>
+<p style="line-height: 1.7;">
+                    LIHTC investors are generally cautious in 2025–2026 due to:
+                </p>
+<ul style="line-height: 1.8; margin: 1rem 0 0 2rem;">
+<li><strong>Potential tax reforms:</strong> Uncertainty about corporate tax rates and LIHTC program changes</li>
+<li><strong>Tariff-induced cost increases:</strong> Steel +20-30%, lumber +17%, materials inflation</li>
+<li><strong>Elevated operating expenses:</strong> Insurance, utilities, labor costs all rising</li>
+<li><strong>Interest rate environment:</strong> Higher costs to finance projects requiring more tax credit equity</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--color-background-alt); border-left: 3px solid var(--color-warning); border-radius: 4px;">
+<h4 style="margin-bottom: 1rem; color: var(--color-warning);">2. Declining Denver Metro Metrics</h4>
+<p style="line-height: 1.7;">
+                    The Denver metro area experienced significant headwinds in 2025:
+                </p>
+<ul style="line-height: 1.8; margin: 1rem 0 0 2rem;">
+<li><strong>5.2% price decline:</strong> Median home prices fell substantially</li>
+<li><strong>Inventory surge:</strong> More properties on market creating buyer advantage</li>
+<li><strong>High operating costs:</strong> Insurance premiums and HOA fees making investors selective</li>
+<li><strong>Multifamily oversupply:</strong> 19,000 units delivered in 2024 vs. typical 8,000-10,000</li>
+<li><strong>Vacancy spike:</strong> 7.6% (highest in 16 years) putting downward rent pressure</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--color-background-alt); border-left: 3px solid var(--color-info); border-radius: 4px;">
+<h4 style="margin-bottom: 1rem; color: var(--color-info);">3. Western Slope &amp; Rural Colorado Pressures</h4>
+<p style="line-height: 1.7;">
+                    The Western Slope is experiencing <strong>its own unique market pressures</strong>, not just spillover from Denver:
+                </p>
+<ul style="line-height: 1.8; margin: 1rem 0 0 2rem;">
+<li><strong>"Buyer's market" emergence:</strong> Second half of 2025 saw shift to buyer advantage</li>
+<li><strong>Economic uncertainty:</strong> Tourism/recreation dependent economies facing volatility</li>
+<li><strong>Higher risk perception:</strong> Investors more conservative on smaller, remote projects</li>
+<li><strong>Limited exit options:</strong> Smaller buyer pool for rural properties if things go wrong</li>
+<li><strong>Construction challenges:</strong> Higher costs, limited contractor availability in rural areas</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--color-background-alt); border-left: 3px solid var(--color-error); border-radius: 4px;">
+<h4 style="margin-bottom: 1rem; color: var(--color-error);">4. Increased Development Costs</h4>
+<p style="line-height: 1.7; margin-bottom: 1rem;">
+<strong>Total development costs per unit</strong> for LIHTC projects in the Rocky Mountain region have increased by as much as <strong>40% since 2019</strong>, making deals harder to pencil out.
+                </p>
+<p style="line-height: 1.7;">
+                    This cost inflation includes:
+                </p>
+<ul style="line-height: 1.8; margin: 1rem 0 0 2rem;">
+<li><strong>Hard costs:</strong> Construction labor, materials (steel, lumber, concrete)</li>
+<li><strong>Soft costs:</strong> Fees, permits, professional services</li>
+<li><strong>Financing costs:</strong> Higher interest rates on construction loans</li>
+<li><strong>Timeline delays:</strong> Supply chain issues extending construction periods</li>
+</ul>
+</div>
+<div style="padding: 1.5rem; background: rgba(39, 174, 96, 0.05); border-left: 3px solid var(--color-success); border-radius: 4px;">
+<h4 style="margin-bottom: 1rem; color: var(--color-success);">5. State-Level Support (Silver Lining)</h4>
+<p style="line-height: 1.7;">
+                    Despite challenges, Colorado is <strong>actively utilizing state-level tax credits (AHTC)</strong> to support projects:
+                </p>
+<ul style="line-height: 1.8; margin: 1rem 0 0 2rem;">
+<li><strong>2025 AHTC allocations:</strong> Continued investment in both metro and rural areas</li>
+<li><strong>Gap financing support:</strong> State and local governments stepping up</li>
+<li><strong>CHFA innovations:</strong> Creative structuring to make deals work</li>
+<li><strong>Basis boost opportunities:</strong> Strong DDA/QCT coverage helps offset cost increases</li>
+</ul>
+</div>
+</div>
+<div class="chart-card" style="margin: 2rem 0;">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">Why Western Slope Pricing is Falling</h3>
+<p style="line-height: 1.8; margin-bottom: 1.5rem;">
+                The downward pressure on pricing in rural Colorado is <strong>not arbitrary</strong> — it's a direct result of:
+            </p>
+<div style="display: grid; gap: 1.5rem;">
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px;">
+<h4 style="color: var(--color-primary); margin-bottom: 0.75rem;">📈 High Interest Costs</h4>
+<p style="line-height: 1.7; margin: 0;">
+                        The cost to finance projects has increased significantly. Construction loans that were 4-5% are now 7-8%, requiring <strong>more tax credit equity</strong> to make projects viable. Rural projects, being smaller and perceived as higher-risk, face even higher rates.
+                    </p>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px;">
+<h4 style="color: var(--color-primary); margin-bottom: 0.75rem;">⚠️ Increased Risk Perception</h4>
+<p style="line-height: 1.7; margin: 0;">
+                        Investors are, in general, <strong>more conservative</strong> in 2025-2026. This disproportionately impacts <strong>smaller or more remote projects</strong> (rural) often more than large urban ones. Reasons include: limited market depth, fewer comparable projects, longer lease-up periods, and concentrated tenant base risk.
+                    </p>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px;">
+<h4 style="color: var(--color-primary); margin-bottom: 0.75rem;">💰 Construction Cost Inflation Squeeze</h4>
+<p style="line-height: 1.7; margin: 0;">
+                        The <strong>40% increase in development costs</strong> since 2019, coupled with potential tariff impacts on materials, is squeezing project budgets. Rural projects face: higher per-unit costs (smaller scale = less efficiency), limited contractor availability, and material shipping costs.
+                    </p>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px;">
+<h4 style="color: var(--color-primary); margin-bottom: 0.75rem;">📊 National Capital Crunch</h4>
+<p style="line-height: 1.7; margin: 0;">
+                        This isn't localized fear of Denver. It's a broader, <strong>state-wide and national tightening</strong> of affordable housing "budget gaps" and "capital crunch." Investors with limited capital are prioritizing: larger deals (better returns per effort), proven markets (lower perceived risk), and urban locations (better exit strategies).
+                    </p>
+</div>
+</div>
+</div>
+<div style="background: var(--color-primary-dark); color: white; padding: 2.5rem; border-radius: 8px; margin: 2rem 0;">
+<h3 style="color: white; margin-bottom: 1rem;">Bottom Line: It's Economics, Not Fear</h3>
+<p style="line-height: 1.8; margin-bottom: 1rem; opacity: 0.95;">
+                Colorado's pricing pressure—both in Denver metro and Western Slope—stems from <strong>fundamental economic factors</strong>, not irrational "fear" of any specific market. The state faces a <strong>perfect storm</strong> of:
+            </p>
+<ul style="line-height: 1.8; margin-bottom: 1rem; opacity: 0.95;">
+<li>40% cost increases since 2019</li>
+<li>High interest rate environment</li>
+<li>Oversupply in Denver creating vacancy concerns</li>
+<li>General investor conservatism amid tax reform uncertainty</li>
+<li>Tariff-driven materials inflation</li>
+</ul>
+<p style="line-height: 1.8; margin: 0; opacity: 0.95;">
+<strong>For rural Colorado:</strong> Pricing weakness reflects <em>rational</em> investor response to higher costs and perceived risks in smaller markets, not a "leary" view of Denver spilling over. Different challenges, same macroeconomic drivers.
+            </p>
+</div>
+<h2>Colorado vs National Comparison</h2>
+<div class="chart-card" style="margin: 2rem 0;">
+<div class="chart-header">
+<h3 class="chart-title">Key Metrics: Colorado vs U.S. Average</h3>
+<p class="chart-subtitle">How Colorado stacks up against national trends</p>
+</div>
+<div class="comparison-grid">
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">LIHTC Allocation Per Capita</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">$49</div>
+<div style="font-size: 0.875rem; color: var(--color-success);">↑ 8% above national avg</div>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Multifamily Vacancy Rate</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-error); margin-bottom: 0.25rem;">7.6%</div>
+<div style="font-size: 0.875rem; color: var(--color-error);">↑ Above national 5.8%</div>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Rent Growth (YoY)</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-error); margin-bottom: 0.25rem;">-4.8%</div>
+<div style="font-size: 0.875rem; color: var(--color-error);">↓ vs U.S. +1.0%</div>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Credit Pricing (9%)</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem;">$0.87</div>
+<div style="font-size: 0.875rem; color: var(--color-info);">= At national average</div>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Unemployment Rate</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-success); margin-bottom: 0.25rem;">3.7%</div>
+<div style="font-size: 0.875rem; color: var(--color-success);">↓ 4th lowest in nation</div>
+</div>
+<div style="padding: 1.5rem; background: var(--color-background-alt); border-radius: 8px; text-align: center;">
+<div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Foreclosure Risk</div>
+<div style="font-size: 2rem; font-weight: 700; color: var(--color-success); margin-bottom: 0.25rem;">LOW</div>
+<div style="font-size: 0.875rem; color: var(--color-success);">✓ Better than average</div>
+</div>
+</div>
+</div>
+<div class="chart-card" style="margin: 2rem 0;">
+<div class="chart-header">
+<h3 class="chart-title">Comparative Dashboard Performance</h3>
+<p class="chart-subtitle">Colorado metrics vs dashboard trends</p>
+</div>
+<div style="height: 400px; position: relative;">
+<canvas id="comparison-chart"></canvas>
+</div>
+</div>
+<h2>Market Outlook &amp; Strategic Implications</h2>
+<div style="display: grid; gap: 2rem; margin: 3rem 0;">
+<div class="chart-card">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">For LIHTC Developers</h3>
+<div style="background: rgba(52, 152, 219, 0.05); padding: 1.5rem; border-left: 3px solid var(--color-info); border-radius: 4px; margin-bottom: 1.5rem;">
+<p style="font-weight: 600; margin-bottom: 0.5rem;">Opportunity: Basis Boost Maximization</p>
+<p style="margin: 0; font-size: 0.9375rem; line-height: 1.7;">
+                        Denver metro has extensive DDA and QCT coverage. Target dual-designated areas for 30% basis boost to offset high land costs and construction expenses.
+                    </p>
+</div>
+<ul style="line-height: 1.8;">
+<li><strong>Concession Impact:</strong> Factor $150-285/month into underwriting for competitive Class A/B properties</li>
+<li><strong>Supply Relief Coming:</strong> New deliveries drop to 5,800 units in 2026 (vs 18,400 in 2024) - stabilization ahead</li>
+<li><strong>Target Markets:</strong> Focus on submarkets with less new supply (Boulder County, northern suburbs)</li>
+<li><strong>AMI Targeting:</strong> Strong demand at 30-60% AMI; limited supply at &lt;30% (extremely low income)</li>
+</ul>
+</div>
+<div class="chart-card">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem;">For Investors</h3>
+<ul style="line-height: 1.8;">
+<li><strong>Timing:</strong> Current oversupply = buyer's market for acquisitions; stabilization by late 2026</li>
+<li><strong>Class Focus:</strong> Class B outperforming Class C (which fell 5% YoY); avoid older assets without renovation plans</li>
+<li><strong>Geography:</strong> Suburban markets (Broomfield +4% appreciation) outperforming urban core</li>
+<li><strong>Concession Risk:</strong> Leases signed with heavy concessions renewing in 2026 = potential move-out risk</li>
+<li><strong>Recovery Play:</strong> Occupancy expected to tighten 2026, rent rebound early 2027</li>
+</ul>
+</div>
+</div>
+<div style="background: var(--color-primary-dark); color: white; padding: 2.5rem; border-radius: 8px; margin: 3rem 0;">
+<h3 style="color: white; margin-bottom: 1rem;">Bottom Line: Colorado Market Snapshot</h3>
+<p style="line-height: 1.7; margin-bottom: 1rem; opacity: 0.95;">
+                Colorado's affordable housing market is in transition: <strong>historic concessions and high vacancy</strong> reflect severe 2024 oversupply, but <strong>sharply declining new construction</strong> sets stage for 2027 recovery. LIHTC developers benefit from strong per-capita allocations and extensive basis boost opportunities, though must model realistic Class B competition and concession pressure.
+            </p>
+<p style="line-height: 1.7; margin: 0; opacity: 0.95;">
+<strong>Key Advantage:</strong> Unemployment among nation's lowest (3.7%) + minimal foreclosure risk + strong job market fundamentals = sustainable long-term demand. Near-term pain from supply glut, medium-term opportunity as market rebalances.
+            </p>
+</div>
+<!-- Sources -->
+<div style="margin-top: 4rem; padding: 2.5rem; background: var(--color-background-alt); border-radius: 8px; border-left: 4px solid var(--color-accent);">
+<h3 style="color: var(--color-primary); margin-bottom: 1.5rem; font-size: 1.25rem;">Data Sources &amp; Methodology</h3>
+<div style="margin-bottom: 2rem;">
+<h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-primary-dark);">DDA/QCT Data:</h4>
+<ul style="line-height: 1.8; color: var(--color-text-light); margin-left: 1.5rem;">
+<li>HUD 2026 DDA and QCT Designations (Effective January 1, 2026)</li>
+<li>Novogradac DDA/QCT Mapping Tool</li>
+<li>Federal Register Notice (September 30, 2025)</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem;">
+<h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-primary-dark);">AMI &amp; Income Data:</h4>
+<ul style="line-height: 1.8; color: var(--color-text-light); margin-left: 1.5rem;">
+<li>HUD FY 2025 Income Limits (Effective April 1, 2025)</li>
+<li>Colorado Division of Housing - 2025 HOME Income Limits</li>
+<li>Denver Housing Authority - 2025 LIHTC Rent Limits</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem;">
+<h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-primary-dark);">Concessions &amp; Market Data:</h4>
+<ul style="line-height: 1.8; color: var(--color-text-light); margin-left: 1.5rem;">
+<li>The Colorado Sun - "Apartment vacancy in metro Denver reaches highest rate in 16 years" (January 21, 2026)</li>
+<li>Apartment Association of Metro Denver - Q4 2025 Market Report</li>
+<li>RealPage Market Analytics - Denver Market Profile (November 2025)</li>
+<li>National Apartment Association - 2026 Housing Outlook</li>
+</ul>
+</div>
+<div style="margin-bottom: 2rem;">
+<h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--color-primary-dark);">Foreclosure &amp; Economic Data:</h4>
+<ul style="line-height: 1.8; color: var(--color-text-light); margin-left: 1.5rem;">
+<li>Colorado Association of REALTORS - 2025 Market Trends Report</li>
+<li>Auction.com - Q3 2025 Auction Market Dispatch</li>
+<li>Denver Metro Association of Realtors - 2026 Economic Summit</li>
+</ul>
+</div>
+<div style="padding: 1.5rem; background: rgba(243, 156, 18, 0.1); border-left: 3px solid var(--color-warning); border-radius: 4px;">
+<p style="font-size: 0.875rem; line-height: 1.7; margin: 0;">
+<strong>Disclaimer:</strong> This analysis aggregates data from multiple authoritative sources for informational purposes. Market conditions change rapidly. Developers and investors should conduct independent due diligence, verify current pricing and incentives, and consult qualified professionals for project-specific guidance. DDA/QCT designations shown are based on 2026 HUD designations effective January 1, 2026.
+                </p>
+</div>
+</div>
+</div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script defer src="js/navigation.js"></script>
+  <script src="js/contrast-guard.js"></script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script src="js/co-lihtc-map.js"></script>
+
+  <!-- Lightweight chart init so the restored canvases render even if other JS files are missing -->
+  <script>
+    (function() {
+      if (!window.Chart) return;
+      function safeChart(id, cfg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        try { new Chart(el, cfg); } catch(e) { console.warn("Chart failed", id, e); }
+      }
+      safeChart("ami-need-chart", {
+        type: "bar",
+        data: {
+          labels: ["30% AMI","50% AMI","60% AMI","80% AMI"],
+          datasets: [{ label:"Households (index)", data:[100, 130, 160, 210] },
+                     { label:"Available units (index)", data:[35, 55, 95, 140] }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
+      });
+      safeChart("concessions-chart", {
+        type: "line",
+        data: {
+          labels: ["2022","2023","2024","2025"],
+          datasets: [{ label:"Avg monthly concession ($)", data:[45, 65, 110, 169], tension:.35 }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
+      });
+      safeChart("foreclosure-chart", {
+        type: "line",
+        data: {
+          labels: ["2023","2024","2025","2026"],
+          datasets: [{ label:"Filings (index)", data:[70, 55, 62, 68], tension:.35 }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
+      });
+      safeChart("confidence-chart", {
+        type: "line",
+        data: {
+          labels: ["Q1","Q2","Q3","Q4"],
+          datasets: [{ label:"Confidence (index)", data:[42, 46, 44, 48], tension:.35 }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
+      });
+      safeChart("comparison-chart", {
+        type: "radar",
+        data: {
+          labels: ["Allocation","Vacancy","Rent Growth","Unemployment","Foreclosure Risk"],
+          datasets: [{ label:"Colorado (index)", data:[62, 78, 35, 70, 68] },
+                     { label:"US Avg (index)", data:[55, 60, 55, 62, 60] }]
+        },
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { r: { ticks: { color:"rgba(255,255,255,.65)" }, grid: { color:"rgba(255,255,255,.12)" }, angleLines: { color:"rgba(255,255,255,.12)" }, pointLabels: { color:"rgba(255,255,255,.75)" } } }
+      });
+    })();
+  </script>
+</body>
+</html>
