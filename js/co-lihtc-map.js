@@ -1,8 +1,8 @@
 
-/* Colorado Deep Dive – Leaflet map + live GeoJSON queries from public ArcGIS services
-   - CO boundaries: Colorado State Basemap service (counties & municipalities)
-   - LIHTC points: HUD eGIS AffhtMapService layer 30
-   - QCT/DDA overlays (HUD 2026): ArcGIS item FeatureServices (best-effort)
+/* Colorado Deep Dive – Leaflet map (Colorado-only bounds) + HUD LIHTC points + HUD 2026 QCT/DDA overlays
+   - Boundaries: Colorado State Basemap service (counties & municipalities)
+   - LIHTC: HUD eGIS AffhtMapService layer 30 (maps HUD LIHTC database records)
+   - QCT/DDA: HUD-published ArcGIS item services (best effort)
 */
 (function () {
   function $(id){ return document.getElementById(id); }
@@ -27,15 +27,26 @@
         f: "geojson",
         resultRecordCount: String(pageSize),
         resultOffset: String(offset),
-        outSR: "4326"
+        outSR: "4326",
+        returnExceededLimitFeatures: "true"
       });
 
       const gj = await fetchJSON(`${layerUrl}/query?${params.toString()}`);
       const feats = (gj && gj.features) ? gj.features : [];
+
+      if(feats.length === 0){
+        break;
+      }
       all.features.push(...feats);
 
-      if(feats.length < pageSize) break;
+      // ArcGIS sometimes signals more data via exceededTransferLimit
+      const exceeded = !!(gj && (gj.exceededTransferLimit || (gj.properties && gj.properties.exceededTransferLimit)));
+      if(!exceeded && feats.length < pageSize) break;
+
       offset += pageSize;
+
+      // Hard guardrail to avoid infinite loops in case a service misbehaves
+      if(offset > 200000) break;
     }
     return all;
   }
@@ -51,7 +62,7 @@
   const CO_COUNTIES     = `${CO_BASEMAP}/52`;
   const CO_MUNICIPAL    = `${CO_BASEMAP}/34`;
 
-  // HUD LIHTC points (public)
+  // HUD LIHTC points (public; corresponds to HUD LIHTC database mapped)
   const HUD_LIHTC_LAYER = "https://egis.hud.gov/arcgis/rest/services/affht/AffhtMapService/MapServer/30";
 
   // HUD QCT/DDA 2026 ArcGIS items (best effort; if unavailable, overlays silently skip)
@@ -66,8 +77,8 @@
   }
 
   function styleOverlay(kind){
-    if(kind==="qct") return { color:"rgba(120,255,170,0.55)", weight:1, fillColor:"rgba(120,255,170,0.22)", fillOpacity:0.35 };
-    if(kind==="dda") return { color:"rgba(255,200,90,0.55)",  weight:1, fillColor:"rgba(255,200,90,0.20)",  fillOpacity:0.35 };
+    if(kind==="qct") return { color:"rgba(120,255,170,0.75)", weight:1, fillColor:"rgba(120,255,170,0.30)", fillOpacity:0.55 };
+    if(kind==="dda") return { color:"rgba(255,200,90,0.75)",  weight:1, fillColor:"rgba(255,200,90,0.28)",  fillOpacity:0.55 };
     return { color:"rgba(255,255,255,0.3)", weight:1, fillOpacity:0.1 };
   }
 
@@ -89,16 +100,62 @@
     `;
   }
 
+  function addLegendControl(map){
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function(){
+      const div = L.DomUtil.create("div", "map-legend");
+      div.innerHTML = `
+        <div style="font-weight:700; margin-bottom:6px;">Legend</div>
+        <div class="row"><span class="dot" style="background:#5fa8ff;"></span> LIHTC project (HUD)</div>
+        <div class="row"><span class="swatch" style="background:rgba(120,255,170,.22); border-color:rgba(120,255,170,.45)"></span> QCT overlay</div>
+        <div class="row"><span class="swatch" style="background:rgba(255,200,90,.20); border-color:rgba(255,200,90,.45)"></span> DDA overlay</div>
+      `;
+      // prevent scroll/drag on legend from affecting map
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+      return div;
+    };
+    legend.addTo(map);
+  }
+
   async function init(){
+
+  function padBoundsMiles(bounds, miles){
+    const milesPerDegLat = 69.0;
+    const milesPerDegLng = 54.6; // approx at CO latitude
+    const padLat = miles / milesPerDegLat;
+    const padLng = miles / milesPerDegLng;
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    return L.latLngBounds(
+      [sw.lat - padLat, sw.lng - padLng],
+      [ne.lat + padLat, ne.lng + padLng]
+    );
+  }
+
     const mapEl = $("coMap");
     if(!mapEl || typeof L==="undefined") return;
 
-    const map = L.map("coMap", { zoomControl:true, preferCanvas:true });
+    const map = L.map("coMap", {
+      zoomControl:true,
+      preferCanvas:true,
+      minZoom: 6,
+      maxZoom: 12
+    });
+
+    // dark basemap, no key
+    map.createPane('overlayPaneCo');
+    map.getPane('overlayPaneCo').style.zIndex = 410;
+    map.createPane('pointsPaneCo');
+    map.getPane('pointsPaneCo').style.zIndex = 420;
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     }).addTo(map);
 
+    addLegendControl(map);
+
+    // load boundaries
     const [stateGJ, countiesGJ, placesGJ] = await Promise.all([
       arcgisQueryGeoJSON(CO_STATE_EXTENT, "1=1", "*"),
       arcgisQueryGeoJSON(CO_COUNTIES, "1=1", "NAME,STATE_ABBR,COUNTY_FIPS,FIPS"),
@@ -117,7 +174,16 @@
       onEachFeature:(f, layer)=> layer.bindTooltip((f.properties && (f.properties.NAMELSAD10 || f.properties.NAME10)) || "", { sticky:true, opacity:0.85 })
     });
 
-    map.fitBounds(stateLayer.getBounds(), { padding:[12,12] });
+    // lock map to Colorado bounds (no panning outside)
+    const coBounds = stateLayer.getBounds();
+    map.fitBounds(coBounds, { padding:[12,12] });
+    // Prevent zooming out past Colorado extent
+    const minZ = map.getBoundsZoom(paddedBounds, true);
+    map.setMinZoom(minZ);
+    map.setZoom(minZ);
+    const paddedBounds = padBoundsMiles(coBounds, 50);
+    map.setMaxBounds(paddedBounds);
+    map.options.maxBoundsViscosity = 1.0;
 
     // QCT/DDA overlays
     let qctLayer = null, ddaLayer = null, qctUrl = null, ddaUrl = null;
@@ -127,12 +193,12 @@
       if(!ddaUrl) ddaUrl = await resolveArcGISItemServiceUrl(DDA_2026_ITEM);
 
       if(!qctLayer){
-        const qctGJ = await arcgisQueryGeoJSON(qctUrl.replace(/\/?$/,"") + "/0", "STATEFP='08'", "*");
-        qctLayer = L.geoJSON(qctGJ, { style:()=>styleOverlay("qct") });
+        const qctGJ = await arcgisQueryGeoJSON(qctUrl.replace(/\/?$/,"") + "/0", "(STATEFP='08') OR (STATE='08') OR (STATEFP20='08') OR (STATEFP10='08')", "*");
+        qctLayer = L.geoJSON(qctGJ, { pane:'overlayPaneCo', style:()=>styleOverlay("qct") });
       }
       if(!ddaLayer){
-        const ddaGJ = await arcgisQueryGeoJSON(ddaUrl.replace(/\/?$/,"") + "/0", "STATEFP='08'", "*");
-        ddaLayer = L.geoJSON(ddaGJ, { style:()=>styleOverlay("dda") });
+        const ddaGJ = await arcgisQueryGeoJSON(ddaUrl.replace(/\/?$/,"") + "/0", "(STATEFP='08') OR (STATE='08') OR (STATEFP20='08') OR (STATEFP10='08')", "*");
+        ddaLayer = L.geoJSON(ddaGJ, { pane:'overlayPaneCo', style:()=>styleOverlay("dda") });
       }
     }
 
@@ -148,12 +214,12 @@
       }
     }
 
-    // LIHTC points
+    // LIHTC points (HUD mapped database)
     let lihtcAll = null;
     const lihtcGroup = L.layerGroup().addTo(map);
 
     async function loadLIHTC(){
-      const gj = await arcgisQueryGeoJSON(HUD_LIHTC_LAYER, "PROJ_ST='CO'", "*");
+      const gj = await arcgisQueryGeoJSON(HUD_LIHTC_LAYER, "(PROJ_ST='CO') OR (STD_ST='CO')", "*");
       lihtcAll = gj;
       renderLIHTC();
     }
@@ -173,7 +239,7 @@
         const coords = f.geometry && f.geometry.type==="Point" ? f.geometry.coordinates : null;
         if(!coords) continue;
 
-        const marker = L.circleMarker([coords[1], coords[0]], {
+        const marker = L.circleMarker([coords[1], coords[0]], { pane:'pointsPaneCo',
           radius:5, weight:1,
           color:"rgba(95,168,255,0.95)",
           fillColor:"rgba(95,168,255,0.55)",
