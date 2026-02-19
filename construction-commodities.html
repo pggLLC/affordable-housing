@@ -1,17 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Commodities Forecast | LIHTC Analytics Hub</title>
-    
-    <!-- Unified Theme -->
-    <link rel="stylesheet" href="unified-theme.css">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <style>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Construction Commodities Forecast | LIHTC Analytics Hub</title>
+<!-- Unified Theme -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -111,66 +108,59 @@
             color: var(--text-secondary);
         }
     </style>
+<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
 </head>
 <body>
-    <main>
-        <div class="container">
-            <div class="page-header">
-                <h1 class="page-title">Construction Commodities Forecast</h1>
-                <p class="page-subtitle">Real-time price tracking and forecasting for key construction materials from FRED data</p>
-            </div>
-            
-            <!-- Price Cards -->
-            <div id="price-cards-container" class="price-cards">
-                <div class="loading-message">Loading commodity prices...</div>
-            </div>
-            
-            <!-- Steel Chart -->
-            <div class="chart-section">
-                <h2 class="chart-title">Steel & Metal Products</h2>
-                <div class="chart-container">
-                    <canvas id="steel-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Lumber Chart -->
-            <div class="chart-section">
-                <h2 class="chart-title">Lumber & Wood Products</h2>
-                <div class="chart-container">
-                    <canvas id="lumber-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Concrete Chart -->
-            <div class="chart-section">
-                <h2 class="chart-title">Concrete & Cement</h2>
-                <div class="chart-container">
-                    <canvas id="concrete-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Composite Index -->
-            <div class="chart-section">
-                <h2 class="chart-title">Construction Materials Input PPI (Composite)</h2>
-                <div class="chart-container">
-                    <canvas id="composite-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Data Source -->
-            <div class="content-section" style="margin-top: 2rem;">
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                    <strong>Data Source:</strong> All commodity prices from <a href="https://fred.stlouisfed.org" target="_blank" style="color: var(--accent-gold);">Federal Reserve Economic Data (FRED)</a>. Data updates monthly.
+<main>
+<div class="container">
+<div class="page-header">
+<h1 class="page-title">Construction Commodities Forecast</h1>
+<p class="page-subtitle">Real-time price tracking and forecasting for key construction materials from FRED data</p>
+</div>
+<!-- Price Cards -->
+<div class="price-cards" id="price-cards-container">
+<div class="loading-message">Loading commodity prices...</div>
+</div>
+<!-- Steel Chart -->
+<div class="chart-section">
+<h2 class="chart-title">Steel &amp; Metal Products</h2>
+<div class="chart-container">
+<canvas id="steel-chart"></canvas>
+</div>
+</div>
+<!-- Lumber Chart -->
+<div class="chart-section">
+<h2 class="chart-title">Lumber &amp; Wood Products</h2>
+<div class="chart-container">
+<canvas id="lumber-chart"></canvas>
+</div>
+</div>
+<!-- Concrete Chart -->
+<div class="chart-section">
+<h2 class="chart-title">Concrete &amp; Cement</h2>
+<div class="chart-container">
+<canvas id="concrete-chart"></canvas>
+</div>
+</div>
+<!-- Composite Index -->
+<div class="chart-section">
+<h2 class="chart-title">Construction Materials Input PPI (Composite)</h2>
+<div class="chart-container">
+<canvas id="composite-chart"></canvas>
+</div>
+</div>
+<!-- Data Source -->
+<div class="content-section" style="margin-top: 2rem;">
+<p style="color: var(--text-secondary); font-size: 0.9rem;">
+<strong>Data Source:</strong> All commodity prices from <a href="https://fred.stlouisfed.org" style="color: var(--accent-gold);" target="_blank">Federal Reserve Economic Data (FRED)</a>. Data updates monthly.
                 </p>
-            </div>
-        </div>
-    </main>
-    
-    <!-- FRED Commodities Integration -->
-    <script src="js/fred-commodities.js"></script>
-    
-    <!-- Commodity Charts Logic -->
-    <script>
+</div>
+</div>
+</main>
+<!-- FRED Commodities Integration -->
+<script src="js/fred-commodities.js"></script>
+<!-- Commodity Charts Logic -->
+<script>
         // Create price card HTML
         function createPriceCard(key, commodity) {
             const yoyChange = parseFloat(commodity.yoyChange) || 0;
@@ -297,8 +287,8 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializeCommodities);
     </script>
-    
-    <!-- Navigation -->
-    <script src="navigation.js"></script>
+<!-- Navigation -->
+<script src="js/navigation.js"></script>
+<script src="js/contrast-guard.js"></script>
 </body>
 </html>

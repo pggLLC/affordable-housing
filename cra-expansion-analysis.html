@@ -2,15 +2,14 @@
 
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>CRA Expansion Impact Analysis - LIHTC Analytics Hub</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <link href="css/styles.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="css/unified-theme.css" rel="stylesheet"/>
+
 <style>
 
 /* Readability guard:
@@ -74,12 +73,20 @@ thead th, tbody td{
 
 :root{--color-text-light: var(--color-text-muted, var(--fallback-muted));}
 
-</style></head>
-<body>
+</style><script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+
+<style id="global-readability-fix">
+  html, body { background:#f8fafc !important; color:#0f172a !important; }
+  p, li, td, th, span, small, label, h1, h2, h3, h4 { color:#0f172a !important; }
+  a { color:#1d4ed8 !important; }
+  .card, .panel, .section, .content, .chart-card { background:#ffffff !important; color:#0f172a !important; border:1px solid rgba(15,23,42,.12) !important; }
+  svg text { fill:#0f172a !important; }
+</style>
+
+</head>
+<body data-page="cra-expansion-analysis.html">
 <div id="site-header"></div>
-
-
-<div style="max-width: 1000px; margin: 0 auto; padding: 8rem 2rem 4rem;">
+<div style="max-width: 1000px; margin: 0 auto; padding: 3.5rem 2rem 4rem;">
 <div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-info); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1.5rem;">
             Policy Analysis
         </div>
@@ -383,8 +390,8 @@ thead th, tbody td{
             }
         });
     </script>
-
-<script src="js/navigation.js" defer></script>
+<script defer="" src="js/navigation.js"></script>
+<script src="js/contrast-guard.js"></script>
 </body>
 </html>
 <div style="margin-top: 4rem; padding: 2.5rem; background: var(--color-background-alt); border-radius: 8px; border-left: 4px solid var(--color-accent);">

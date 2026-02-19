@@ -8,11 +8,12 @@
 
   window.fetch = function(input, init){
     try{
-      let url = (typeof input === "string") ? input : input.url;
+      const isRequest = (typeof Request !== "undefined") && (input instanceof Request);
+      let url = (typeof input === "string") ? input : (isRequest ? input.url : input.url);
 
       if (window.APP_CONFIG) {
         // FRED
-        if (url.includes("fred.stlouisfed.org") && !url.includes("api_key=")) {
+        if ((url.includes("fred.stlouisfed.org") || url.includes("api.stlouisfed.org")) && !url.includes("api_key=")) {
           const sep = url.includes("?") ? "&" : "?";
           url = url + sep + "api_key=" + encodeURIComponent(window.APP_CONFIG.FRED_API_KEY || "");
         }
@@ -24,6 +25,10 @@
         }
       }
 
+      if (isRequest) {
+        const req = new Request(url, input);
+        return originalFetch.call(this, req, init);
+      }
       return originalFetch.call(this, url, init);
     } catch(e){
       console.warn("API wrapper error:", e);

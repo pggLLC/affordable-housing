@@ -1,22 +1,18 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regional Analysis | LIHTC Analytics Hub</title>
-    <meta name="description" content="State and metro-level LIHTC data analysis and housing market insights.">
-    
-    <!-- Unified Theme -->
-    <link rel="stylesheet" href="unified-theme.css">
-    
-    <!-- D3.js for map -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://d3js.org/topojson.v3.min.js"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <style>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Regional Analysis | LIHTC Analytics Hub</title>
+<meta content="State and metro-level LIHTC data analysis and housing market insights." name="description"/>
+<!-- Unified Theme -->
+
+<!-- D3.js for map -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
         .regional-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -288,125 +284,113 @@
             }
         }
     </style>
+<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
 </head>
 <body>
-    <main>
-        <div class="regional-container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">Regional Market Analysis</h1>
-                <p class="page-subtitle">State-level LIHTC allocations and housing market trends</p>
-            </div>
-            
-            <!-- Filters -->
-            <div class="filter-section">
-                <div class="filter-group">
-                    <label class="filter-label">Color Map By</label>
-                    <select class="filter-select" id="map-mode-select">
-                        <option value="allocation">Allocation Amount</option>
-                        <option value="region">Geographic Region</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">Filter by State</label>
-                    <select class="filter-select" id="state-select">
-                        <option value="all">All States</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Summary Stats -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-total">$12.8B</div>
-                    <div class="stat-label" id="stat-total-label">Total Allocations</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-states">51</div>
-                    <div class="stat-label">States + DC</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-per-capita">$3.75</div>
-                    <div class="stat-label">Avg Per Capita</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">$0.87</div>
-                    <div class="stat-label">9% Credit Price</div>
-                </div>
-            </div>
-            
-            <!-- Interactive Map -->
-            <div class="map-section">
-                <h2 class="section-title" id="map-title">LIHTC Allocations by State</h2>
-                <p class="section-subtitle">Click any state to view detailed information and top projects</p>
-                
-                <div id="us-map-container">
-                    <svg id="us-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
-                        <text x="480" y="300" text-anchor="middle" fill="#e8dcc4" font-size="16">
+<main>
+<div class="regional-container">
+<!-- Page Header -->
+<div class="page-header">
+<h1 class="page-title">Regional Market Analysis</h1>
+<p class="page-subtitle">State-level LIHTC allocations and housing market trends</p>
+</div>
+<!-- Filters -->
+<div class="filter-section">
+<div class="filter-group">
+<label class="filter-label">Color Map By</label>
+<select class="filter-select" id="map-mode-select">
+<option value="allocation">Allocation Amount</option>
+<option value="region">Geographic Region</option>
+</select>
+</div>
+<div class="filter-group">
+<label class="filter-label">Filter by State</label>
+<select class="filter-select" id="state-select">
+<option value="all">All States</option>
+</select>
+</div>
+</div>
+<!-- Summary Stats -->
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-value" id="stat-total">$12.8B</div>
+<div class="stat-label" id="stat-total-label">Total Allocations</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-states">51</div>
+<div class="stat-label">States + DC</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-per-capita">$3.75</div>
+<div class="stat-label">Avg Per Capita</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">$0.87</div>
+<div class="stat-label">9% Credit Price</div>
+</div>
+</div>
+<!-- Interactive Map -->
+<div class="map-section">
+<h2 class="section-title" id="map-title">LIHTC Allocations by State</h2>
+<p class="section-subtitle">Click any state to view detailed information and top projects</p>
+<div id="us-map-container">
+<svg id="us-map" preserveaspectratio="xMidYMid meet" viewbox="0 0 960 600">
+<text fill="#e8dcc4" font-size="16" text-anchor="middle" x="480" y="300">
                             Loading map...
                         </text>
-                    </svg>
-                </div>
-                
-                <div class="map-legend" id="map-legend"></div>
-            </div>
-            
-            <!-- Tooltip -->
-            <div class="map-tooltip" id="map-tooltip"></div>
-            
-            <!-- Charts Grid -->
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <h3 class="section-title">Top 10 States by Allocation</h3>
-                    <p class="section-subtitle">Total allocation amounts</p>
-                    <div class="chart-container">
-                        <canvas id="allocations-chart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="chart-card">
-                    <h3 class="section-title">Per Capita Leaders</h3>
-                    <p class="section-subtitle">Highest per capita allocation</p>
-                    <div class="chart-container">
-                        <canvas id="per-capita-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- LIHTC Allocation by State Table -->
-            <div class="data-table-container">
-                <h2 class="section-title">LIHTC Allocation by State</h2>
-                <p class="section-subtitle">Complete state allocation data</p>
-                <div class="data-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>State</th>
-                                <th>Population</th>
-                                <th>Total Allocation</th>
-                                <th>Per Capita</th>
-                                <th>% of National</th>
-                            </tr>
-                        </thead>
-                        <tbody id="states-table-body">
-                            <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Navigation Script -->
-    <script src="js/config.js"></script>
-<script src="navigation.js"></script>
-    
-    <!-- State Data -->
-    <script src="js/state-allocations-2026.js"></script>
-    
-    <script>
+</svg>
+</div>
+<div class="map-legend" id="map-legend"></div>
+</div>
+<!-- Tooltip -->
+<div class="map-tooltip" id="map-tooltip"></div>
+<!-- Charts Grid -->
+<div class="charts-grid">
+<div class="chart-card">
+<h3 class="section-title">Top 10 States by Allocation</h3>
+<p class="section-subtitle">Total allocation amounts</p>
+<div class="chart-container">
+<canvas id="allocations-chart"></canvas>
+</div>
+</div>
+<div class="chart-card">
+<h3 class="section-title">Per Capita Leaders</h3>
+<p class="section-subtitle">Highest per capita allocation</p>
+<div class="chart-container">
+<canvas id="per-capita-chart"></canvas>
+</div>
+</div>
+</div>
+<!-- LIHTC Allocation by State Table -->
+<div class="data-table-container">
+<h2 class="section-title">LIHTC Allocation by State</h2>
+<p class="section-subtitle">Complete state allocation data</p>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>State</th>
+<th>Population</th>
+<th>Total Allocation</th>
+<th>Per Capita</th>
+<th>% of National</th>
+</tr>
+</thead>
+<tbody id="states-table-body">
+<tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading data...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Script -->
+<script src="js/config.js"></script>
+<script src="js/navigation.js"></script>
+<!-- State Data -->
+<script src="js/state-allocations-2026.js"></script>
+<script>
         console.log('Regional page initializing...');
         
         // Region definitions
@@ -836,5 +820,6 @@
             }
         });
     </script>
+<script src="js/contrast-guard.js"></script>
 </body>
 </html>

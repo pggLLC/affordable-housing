@@ -1,22 +1,18 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIHTC Market Dashboard | LIHTC Analytics Hub</title>
-    <meta name="description" content="Real-time analytics on tax credit allocations, pricing, and housing development.">
-    
-    <!-- Unified Theme -->
-    <link rel="stylesheet" href="unified-theme.css">
-    
-    <!-- D3.js for map -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://d3js.org/topojson.v3.min.js"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <style>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LIHTC Market Dashboard | LIHTC Analytics Hub</title>
+<meta content="Real-time analytics on tax credit allocations, pricing, and housing development." name="description"/>
+<!-- Unified Theme -->
+
+<!-- D3.js for map -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
         .dashboard-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -292,143 +288,131 @@
             }
         }
     </style>
+<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
 </head>
 <body>
-    <main>
-        <div class="dashboard-container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">LIHTC Market Dashboard</h1>
-                <p class="page-subtitle">Real-time analytics on tax credit allocations, pricing, and housing development</p>
-            </div>
-            
-            <!-- Dashboard Controls -->
-            <div class="dashboard-controls">
-                <div class="control-group">
-                    <label class="control-label">Year</label>
-                    <select class="control-select" id="year-select">
-                        <option value="2026" selected>2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Region</label>
-                    <select class="control-select" id="region-select">
-                        <option value="all" selected>All Regions</option>
-                        <option value="northeast">Northeast</option>
-                        <option value="south">South</option>
-                        <option value="midwest">Midwest</option>
-                        <option value="west">West</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Key Statistics -->
-            <div class="stats-grid" id="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-total">$12.8B</div>
-                    <div class="stat-label" id="stat-total-label">Annual LIHTC Allocations</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">$0.87</div>
-                    <div class="stat-label">Avg 9% Credit Price</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-states">51</div>
-                    <div class="stat-label" id="stat-states-label">States + DC</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-per-capita">$3.75</div>
-                    <div class="stat-label">Avg Per Capita</div>
-                </div>
-            </div>
-            
-            <div class="data-source">
-                <strong>Data Source:</strong>
-                <a href="https://www.novoco.com/resource-centers/affordable-housing-tax-credits/2026-federal-lihtc-information-by-state" target="_blank" rel="noopener">Novogradac 2026 LIHTC Data</a>
+<main>
+<div class="dashboard-container">
+<!-- Page Header -->
+<div class="page-header">
+<h1 class="page-title">LIHTC Market Dashboard</h1>
+<p class="page-subtitle">Real-time analytics on tax credit allocations, pricing, and housing development</p>
+</div>
+<!-- Dashboard Controls -->
+<div class="dashboard-controls">
+<div class="control-group">
+<label class="control-label">Year</label>
+<select class="control-select" id="year-select">
+<option selected="" value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+</select>
+</div>
+<div class="control-group">
+<label class="control-label">Region</label>
+<select class="control-select" id="region-select">
+<option selected="" value="all">All Regions</option>
+<option value="northeast">Northeast</option>
+<option value="south">South</option>
+<option value="midwest">Midwest</option>
+<option value="west">West</option>
+</select>
+</div>
+</div>
+<!-- Key Statistics -->
+<div class="stats-grid" id="stats-grid">
+<div class="stat-card">
+<div class="stat-value" id="stat-total">$12.8B</div>
+<div class="stat-label" id="stat-total-label">Annual LIHTC Allocations</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">$0.87</div>
+<div class="stat-label">Avg 9% Credit Price</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-states">51</div>
+<div class="stat-label" id="stat-states-label">States + DC</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="stat-per-capita">$3.75</div>
+<div class="stat-label">Avg Per Capita</div>
+</div>
+</div>
+<div class="data-source">
+<strong>Data Source:</strong>
+<a href="https://www.novoco.com/resource-centers/affordable-housing-tax-credits/2026-federal-lihtc-information-by-state" rel="noopener" target="_blank">Novogradac 2026 LIHTC Data</a>
                 | Statistics update in real-time based on region selection
             </div>
-            
-            <!-- Interactive Map -->
-            <div class="map-section">
-                <h2 class="section-title">LIHTC Allocations by Region</h2>
-                <p class="section-subtitle">Click any state to view detailed allocation data. States colored by geographic region.</p>
-                
-                <div id="us-map-container">
-                    <svg id="us-map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
-                        <text x="480" y="300" text-anchor="middle" fill="#e8dcc4" font-size="16">
+<!-- Interactive Map -->
+<div class="map-section">
+<h2 class="section-title">LIHTC Allocations by Region</h2>
+<p class="section-subtitle">Click any state to view detailed allocation data. States colored by geographic region.</p>
+<div id="us-map-container">
+<svg id="us-map" preserveaspectratio="xMidYMid meet" viewbox="0 0 960 600">
+<text fill="#e8dcc4" font-size="16" text-anchor="middle" x="480" y="300">
                             Loading US map...
                         </text>
-                    </svg>
-                </div>
-                
-                <div class="map-legend" id="map-legend">
-                    <div class="legend-item">
-                        <div class="legend-color region-northeast"></div>
-                        <span>Northeast</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color region-south"></div>
-                        <span>South</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color region-midwest"></div>
-                        <span>Midwest</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color region-west"></div>
-                        <span>West</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tooltip -->
-            <div class="map-tooltip" id="map-tooltip"></div>
-            
-            <!-- Top States Table -->
-            <div class="data-table-container">
-                <h2 class="section-title" id="table-title">Top 10 States by Allocation</h2>
-                <p class="section-subtitle">States ranked by total LIHTC allocation amount</p>
-                <div class="data-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>State</th>
-                                <th>Population</th>
-                                <th>Total Allocation</th>
-                                <th>Per Capita</th>
-                                <th>% of National</th>
-                            </tr>
-                        </thead>
-                        <tbody id="states-table-body">
-                            <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Top States by Allocation Chart -->
-            <div class="data-table-container">
-                <h2 class="section-title">Top States by Allocation</h2>
-                <p class="section-subtitle">Visual comparison of leading states</p>
-                <div class="chart-container">
-                    <canvas id="allocations-chart"></canvas>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Navigation Script -->
-    <script src="js/config.js"></script>
-<script src="navigation.js"></script>
-    
-    <!-- State Data -->
-    <script src="js/state-allocations-2026.js"></script>
-    
-    <script>
+</svg>
+</div>
+<div class="map-legend" id="map-legend">
+<div class="legend-item">
+<div class="legend-color region-northeast"></div>
+<span>Northeast</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-south"></div>
+<span>South</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-midwest"></div>
+<span>Midwest</span>
+</div>
+<div class="legend-item">
+<div class="legend-color region-west"></div>
+<span>West</span>
+</div>
+</div>
+</div>
+<!-- Tooltip -->
+<div class="map-tooltip" id="map-tooltip"></div>
+<!-- Top States Table -->
+<div class="data-table-container">
+<h2 class="section-title" id="table-title">Top 10 States by Allocation</h2>
+<p class="section-subtitle">States ranked by total LIHTC allocation amount</p>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>State</th>
+<th>Population</th>
+<th>Total Allocation</th>
+<th>Per Capita</th>
+<th>% of National</th>
+</tr>
+</thead>
+<tbody id="states-table-body">
+<tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading data...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Top States by Allocation Chart -->
+<div class="data-table-container">
+<h2 class="section-title">Top States by Allocation</h2>
+<p class="section-subtitle">Visual comparison of leading states</p>
+<div class="chart-container">
+<canvas id="allocations-chart"></canvas>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Script -->
+<script src="js/config.js"></script>
+<script src="js/navigation.js"></script>
+<!-- State Data -->
+<script src="js/state-allocations-2026.js"></script>
+<script>
         console.log('Dashboard initializing...');
         
         // Region definitions
@@ -733,5 +717,6 @@
             }
         });
     </script>
+<script src="js/contrast-guard.js"></script>
 </body>
 </html>
