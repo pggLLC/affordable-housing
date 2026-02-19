@@ -38,8 +38,8 @@ jobs:
             # Construction
             "WPUFD49207":    "PPI: Inputs to construction",
             "WPUSI012011":   "PPI: Lumber & wood products",
-            "WPUFD4":        "PPI: Construction materials",
-            "PCU236115236115": "PPI: New multifamily construction",
+            :        "PPI: Construction materials",
+            : "PPI: New multifamily construction",
             "CES2000000008": "Construction Avg Hourly Earnings",
             "ECIALLCIV":     "Employment Cost Index",
             # Housing
