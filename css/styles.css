@@ -693,13 +693,30 @@ a:hover {
     }
 }
 
-/* === LEGIBILITY OVERRIDES (rebuilt) === */
-html, body { background:#f8fafc !important; color:#0f172a !important; }
-p, li, td, th, small, span, label, .muted { color:#0f172a !important; }
-a { color:#1d4ed8 !important; }
-.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card {
-  background:#ffffff !important;
-  color:#0f172a !important;
-  border:1px solid rgba(15,23,42,.12) !important;
+/* === LEGIBILITY OVERRIDES (v7) === */
+html, body{
+  background: var(--bg-primary, #f8fafc);
+  color: var(--text-primary, #0f172a);
 }
-svg text { fill:#0f172a !important; }
+/* Text */
+body, body *{
+  color: inherit;
+}
+h1,h2,h3,h4,h5,h6{ color: var(--text-primary, #0f172a); }
+p,li,td,th,small,span,label{ color: var(--text-primary, #0f172a); }
+.muted, .subtle, .hint{ color: var(--text-secondary, #334155); }
+a{ color: var(--link, #1d4ed8); }
+
+/* Surfaces */
+.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card, .controls, .toolbar{
+  background: var(--card, #ffffff);
+  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--border, rgba(15,23,42,.14));
+}
+
+/* Charts / SVG labels */
+svg text{ fill: var(--text-primary, #0f172a); }
+canvas{ background: transparent !important; }
+
+/* If any page forces light text classes */
+.text-light, .text-white, .light-text{ color: var(--text-primary, #0f172a) !important; }
