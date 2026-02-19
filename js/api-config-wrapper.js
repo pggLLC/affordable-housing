@@ -4,7 +4,8 @@
 (function(){
   if (!window.fetch) return;
 
-  const originalFetch = window.fetch;
+  /* DISABLE FRED API WRAP (v7) */
+const originalFetch = window.fetch;
 
   window.fetch = function(input, init){
     try{
