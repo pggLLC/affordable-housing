@@ -445,5 +445,66 @@ function getKey(){ return CONFIG_KEY || ""; }
 })();
 </script>
 
+
+<script>
+/* KPI CARDS FROM CACHE OVERRIDE */
+(function(){
+  function set(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
+  function pct(n, d){ return d ? (100*n/d) : null; }
+  function num(v){ var x = Number(v); return isFinite(x) ? x : null; }
+
+  async function load(){
+    try{
+      const res = await fetch('data/fred-data.json', {cache:'no-store'});
+      if(!res.ok) throw new Error('fred-data.json HTTP '+res.status);
+      const data = await res.json();
+      // expected shape: data.series[seriesId] = [{date,value},...]
+      const series = data.series || data || {};
+      function latestValue(id){
+        const arr = series[id];
+        if(!arr || !arr.length) return null;
+        for(let i=arr.length-1;i>=0;i--){
+          const v = arr[i].value ?? arr[i][1] ?? arr[i];
+          const n = num(v);
+          if(n!=null) return n;
+        }
+        return null;
+      }
+      function cpiYoY(){
+        const arr = series['CPIAUCSL'];
+        if(!arr || arr.length < 13) return null;
+        // find last numeric
+        let lastIdx = arr.length-1;
+        while(lastIdx>=0){
+          const v = num(arr[lastIdx].value ?? arr[lastIdx][1] ?? arr[lastIdx]);
+          if(v!=null) { 
+            const v12 = num((arr[lastIdx-12]||{}).value ?? (arr[lastIdx-12]||[])[1] ?? arr[lastIdx-12]);
+            if(v12!=null && v12!==0) return (v - v12)/v12*100;
+            return null;
+          }
+          lastIdx--;
+        }
+        return null;
+      }
+
+      const cpi = cpiYoY();
+      const un = latestValue('UNRATE');
+      const ten = latestValue('DGS10');
+      const hs = latestValue('HOUST');
+
+      set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
+      set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
+      set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
+      set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
+
+    } catch(e){
+      console.warn('[kpi-cache] failed', e);
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+  else load();
+})();
+</script>
+
 </body>
 </html>
