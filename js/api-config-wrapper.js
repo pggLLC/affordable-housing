@@ -12,7 +12,7 @@
 
       if (window.APP_CONFIG) {
         // FRED
-        if (url.includes("fred.stlouisfed.org") && !url.includes("api_key=")) {
+        if ( (url.includes("fred.stlouisfed.org") || url.includes("api.stlouisfed.org"))  && !url.includes("api_key=")) {
           const sep = url.includes("?") ? "&" : "?";
           url = url + sep + "api_key=" + encodeURIComponent(window.APP_CONFIG.FRED_API_KEY || "");
         }
