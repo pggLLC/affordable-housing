@@ -692,3 +692,14 @@ a:hover {
         font-size: 2rem;
     }
 }
+
+/* === LEGIBILITY OVERRIDES (rebuilt) === */
+html, body { background:#f8fafc !important; color:#0f172a !important; }
+p, li, td, th, small, span, label, .muted { color:#0f172a !important; }
+a { color:#1d4ed8 !important; }
+.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card {
+  background:#ffffff !important;
+  color:#0f172a !important;
+  border:1px solid rgba(15,23,42,.12) !important;
+}
+svg text { fill:#0f172a !important; }
