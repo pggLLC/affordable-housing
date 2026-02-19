@@ -155,16 +155,7 @@ p, li, span{
 
 </style>
 
-<style>
-/* FORCE READABLE LIGHT MODE OVERRIDES */
-html, body { background:#f8fafc !important; color:#0f172a !important; }
-p, li, td, th, small, span, label { color:#0f172a !important; }
-a{ color:#1d4ed8 !important; }
-.card, .panel, .section, .content, .chart-card{ background:#ffffff !important; color:#0f172a !important; border:1px solid rgba(15,23,42,.12) !important; }
-svg text{ fill:#0f172a !important; }
-#co-map{ height:80vh !important; min-height:800px !important; width:100% !important; background:#fff !important; }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 </head>
 
 <body data-page="colorado-deep-dive.html">
@@ -895,24 +886,11 @@ svg text{ fill:#0f172a !important; }
         type: "radar",
         data: {
           labels: ["Allocation","Vacancy","Rent Growth","Unemployment","Foreclosure Risk"],
-          datasets: [
-            { label:"Colorado (index)", data:[62, 78, 35, 70, 68] },
-            { label:"US Avg (index)", data:[55, 60, 55, 62, 60] }
-          ]
+          datasets: [{ label:"Colorado (index)", data:[62, 78, 35, 70, 68] },
+                     { label:"US Avg (index)", data:[55, 60, 55, 62, 60] }]
         },
-        options: {
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins: { legend: { labels: { color: "#0f172a" } } },
-          scales: {
-            r: {
-              ticks: { color:"#0f172a" },
-              grid: { color:"rgba(15,23,42,.15)" },
-              angleLines: { color:"rgba(15,23,42,.15)" },
-              pointLabels: { color:"#0f172a" }
-            }
-          }
-        }
+        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
+                  scales: { r: { ticks: { color:"rgba(255,255,255,.65)" }, grid: { color:"rgba(255,255,255,.12)" }, angleLines: { color:"rgba(255,255,255,.12)" }, pointLabels: { color:"rgba(255,255,255,.75)" } } }
       });
     })();
   </script>

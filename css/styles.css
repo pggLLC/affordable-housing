@@ -692,17 +692,3 @@ a:hover {
         font-size: 2rem;
     }
 }
-
-/* === LEGIBILITY OVERRIDES (v8) === */
-body, p, li, td, th, label, small, span { color: var(--text-primary); }
-.muted, .subtle, .text-muted { color: var(--text-secondary); }
-.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-/* SVG labels */
-svg text { fill: var(--text-primary); }
-/* If any page sets light text, normalize common utility classes */
-.text-white, .text-light { color: var(--text-primary) !important; }
-

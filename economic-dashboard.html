@@ -202,7 +202,29 @@ function getKey(){ return CONFIG_KEY || ""; }
   async function fetchFRED(seriesId, apiKey, limit=84){
     const data = await _loadFredData();
     const entry = data.series && data.series[seriesId];
-    if (!entry || !entry.observations) throw new Error(seriesId + ": series not found in cached data");
+
+    // If the series isn't in cached data (e.g., CPIAUCSL may be missing), fall back to live FRED API.
+    if (!entry || !entry.observations){
+      const key = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : (apiKey || "");
+      if (!key) throw new Error(seriesId + ": missing FRED_API_KEY in js/config.js");
+
+      const params = new URLSearchParams({
+        series_id: seriesId,
+        api_key: key,
+        file_type: "json",
+        sort_order: "desc",
+        limit: String(Math.max(24, limit || 84))
+      });
+      const res = await fetch("https://api.stlouisfed.org/fred/series/observations?" + params.toString());
+      if (!res.ok) throw new Error(seriesId + ": live FRED fetch failed (HTTP " + res.status + ")");
+      const j = await res.json();
+      const obs = (j.observations || [])
+        .filter(o => o && o.value !== "." && o.value != null && o.date)
+        .map(o => ({date: o.date, value: Number(o.value)}))
+        .filter(o => isFinite(o.value))
+        .reverse(); // chronological
+      return obs.slice(Math.max(0, obs.length - (limit || 84)));
+    }
     const obs = entry.observations
       .filter(o => o && o.value !== "." && o.value !== null && o.date)
       .map(o => ({date: o.date, value: Number(o.value)}))
@@ -286,19 +308,14 @@ function getKey(){ return CONFIG_KEY || ""; }
   }
 
   async function loadAll(){
-    const apiKey = getKey();
-    if (els.conn) els.conn.textContent = apiKey ? "Yes" : "No";
+    // Data served from data/fred-data.json — no API key needed in the browser
+    const apiKey = true; // kept to avoid ReferenceError in calls below
+    if (els.conn) els.conn.textContent = "Yes";
 
-    // Build cards if not built yet
+    // Build metric cards
     for (const s of Object.values(els.sec)) s.innerHTML = "";
     for (const ind of INDICATORS){
       els.sec[ind.section].appendChild(buildMetricCard(ind));
-    }
-
-    if (!apiKey){
-      // show placeholders
-      if (els.lastUpdated) els.lastUpdated.textContent = "—";
-      return;
     }
 
     // Load headline stats (CPI YoY, UNRATE, DGS10, HOUST)
@@ -387,7 +404,7 @@ function getKey(){ return CONFIG_KEY || ""; }
   }
 
   // Init controls
-  els.conn.textContent = getKey() ? "Yes" : "No";
+  els.conn.textContent = "Yes";
   if (els.lastUpdated) els.lastUpdated.textContent = "—";
   els.refresh.addEventListener("click", () => loadAll());
 
@@ -396,127 +413,6 @@ function getKey(){ return CONFIG_KEY || ""; }
 })();
 </script>
 <script src="js/contrast-guard.js"></script><script src="js/census-geo.js"></script><script src="js/fred-cards.js"></script>
-
-
-<script id="fred-kpi-inline-loader">
-(async function () {
-  try {
-    const key = window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY ? window.APP_CONFIG.FRED_API_KEY : "";
-    if (!key) { console.warn("[kpi] Missing window.APP_CONFIG.FRED_API_KEY"); return; }
-
-    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-
-    async function latest(seriesId, params) {
-      const url = new URL("https://api.stlouisfed.org/fred/series/observations");
-      url.searchParams.set("api_key", key);
-      url.searchParams.set("file_type", "json");
-      url.searchParams.set("series_id", seriesId);
-      url.searchParams.set("sort_order", "desc");
-      url.searchParams.set("limit", "1");
-      if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(seriesId + " HTTP " + res.status);
-      const json = await res.json();
-      const obs = json && json.observations && json.observations[0] ? json.observations[0] : null;
-      if (!obs || obs.value === "." || obs.value == null) throw new Error(seriesId + " no value");
-      return Number(obs.value);
-    }
-
-    // show loading
-    ["statCpi","statUnemp","stat10y","statStarts"].forEach(id => setTxt(id, "Loading…"));
-
-    // CPI YoY (pc1 = percent change from year ago)
-    try { const v = await latest("CPIAUCSL", { units: "pc1" }); setTxt("statCpi", v.toFixed(1) + "%"); }
-    catch(e){ console.warn(e); setTxt("statCpi","—"); }
-
-    try { const v = await latest("UNRATE"); setTxt("statUnemp", v.toFixed(1) + "%"); }
-    catch(e){ console.warn(e); setTxt("statUnemp","—"); }
-
-    try { const v = await latest("DGS10"); setTxt("stat10y", v.toFixed(2) + "%"); }
-    catch(e){ console.warn(e); setTxt("stat10y","—"); }
-
-    // HOUST is "Thousands of Units" SAAR
-    try { const v = await latest("HOUST"); const units = v*1000; setTxt("statStarts", (units>=1e6?(units/1e6).toFixed(2)+"M":units>=1e3?(units/1e3).toFixed(0)+"k":Math.round(units).toString())); }
-    catch(e){ console.warn(e); setTxt("statStarts","—"); }
-
-  } catch (err) {
-    console.warn("[kpi] fatal", err);
-  }
-})();
-</script>
-
-
-<script>
-<script>
-/* KPI CARDS FROM CACHE OVERRIDE */
-(function(){
-  function set(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
-  function num(v){ var x = Number(v); return isFinite(x) ? x : null; }
-  function getArr(seriesObj, id){
-    var s = seriesObj && seriesObj[id];
-    if(!s) return null;
-    // handle {name, observations:[{date,value}...]}
-    if(Array.isArray(s)) return s;
-    if(Array.isArray(s.observations)) return s.observations;
-    return null;
-  }
-  function latest(arr){
-    if(!arr || !arr.length) return null;
-    for(var i=arr.length-1;i>=0;i--){
-      var row = arr[i];
-      var v = (row && row.value!=null) ? row.value : (Array.isArray(row) ? row[1] : row);
-      var n = num(v);
-      if(n!=null) return n;
-    }
-    return null;
-  }
-  function cpiYoY(seriesObj){
-    var arr = getArr(seriesObj, 'CPIAUCSL');
-    if(!arr || arr.length < 13) return null;
-    // last numeric index
-    var j = arr.length-1;
-    while(j>=12){
-      var v = latest(arr.slice(0, j+1));
-      if(v==null){ j--; continue; }
-      // find j numeric value and j-12 numeric value
-      var vj = num(arr[j].value!=null?arr[j].value:(Array.isArray(arr[j])?arr[j][1]:arr[j]));
-      if(vj==null){ j--; continue; }
-      var v12 = num(arr[j-12].value!=null?arr[j-12].value:(Array.isArray(arr[j-12])?arr[j-12][1]:arr[j-12]));
-      if(v12==null || v12===0){ j--; continue; }
-      return (vj - v12)/v12*100;
-    }
-    return null;
-  }
-
-  function warnMissing(id){ console.warn('[kpi-cache] missing series', id); }
-
-  function load(){
-    fetch('data/fred-data.json', {cache:'no-store'})
-      .then(function(res){ if(!res.ok) throw new Error('fred-data.json HTTP '+res.status); return res.json(); })
-      .then(function(data){
-        var seriesObj = data.series || data || {};
-        var cpi = cpiYoY(seriesObj);
-        if(cpi==null) warnMissing('CPIAUCSL');
-        var unArr = getArr(seriesObj, 'UNRATE'); if(!unArr) warnMissing('UNRATE');
-        var tenArr = getArr(seriesObj, 'DGS10'); if(!tenArr) warnMissing('DGS10');
-        var hsArr = getArr(seriesObj, 'HOUST'); if(!hsArr) warnMissing('HOUST');
-
-        var un = latest(unArr);
-        var ten = latest(tenArr);
-        var hs = latest(hsArr);
-
-        set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
-        set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
-        set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
-        set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
-      })
-      .catch(function(e){ console.warn('[kpi-cache] failed', e); });
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
-  else load();
-})();
-</script>
 
 </body>
 </html>
