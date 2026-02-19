@@ -165,6 +165,8 @@ svg text{ fill:#0f172a !important; }
 #co-map{ height:80vh !important; min-height:800px !important; width:100% !important; background:#fff !important; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+
+<style>/* CO MAP SIZE (v7) */ #co-map{width:100%;height:80vh;min-height:800px;background:#fff;border:1px solid rgba(15,23,42,.12);} </style>
 </head>
 
 <body data-page="colorado-deep-dive.html">
@@ -220,7 +222,7 @@ svg text{ fill:#0f172a !important; }
         <label><input type="checkbox" id="filterDDA"> Only DDA projects</label>
       </div>
 
-      <div id="coMap"></div>
+      <div id="co-map"></div>
 
       <div style="margin-top: 1rem; padding: 1rem; background: var(--color-background-alt, rgba(17,26,36,.65)); border-radius: 8px; border: 1px solid var(--border);">
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem;">

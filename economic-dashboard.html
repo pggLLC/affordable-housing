@@ -506,5 +506,74 @@ function getKey(){ return CONFIG_KEY || ""; }
 })();
 </script>
 
+<script>
+/* FRED CACHE ONLY OVERRIDE (v7) - avoid CORS by never calling api.stlouisfed.org from browser */
+(function(){
+  async function loadCache(){
+    const res = await fetch('data/fred-data.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('fred-data.json HTTP '+res.status);
+    return res.json();
+  }
+  function normalizeSeries(cache, id){
+    const series = cache.series || cache || {};
+    const arr = series[id];
+    if(!arr || !arr.length) return null;
+    // accept {date,value} or [date,value]
+    return arr.map(o => {
+      if(Array.isArray(o)) return {date:o[0], value:o[1]};
+      return {date:o.date, value:o.value};
+    }).filter(o => o.value !== "." && o.value != null);
+  }
+  function latest(arr){
+    if(!arr || !arr.length) return null;
+    for(let i=arr.length-1;i>=0;i--){
+      const n = Number(arr[i].value);
+      if(isFinite(n)) return n;
+    }
+    return null;
+  }
+  function cpiYoY(cpiArr){
+    if(!cpiArr || cpiArr.length < 13) return null;
+    const last = latest(cpiArr);
+    if(last==null) return null;
+    // find matching 12 months earlier by index (assumes monthly series)
+    // use last index and last-12 within filtered array
+    let idx = cpiArr.length-1;
+    while(idx>=0 && !isFinite(Number(cpiArr[idx].value))) idx--;
+    if(idx-12 < 0) return null;
+    const prev = Number(cpiArr[idx-12].value);
+    if(!isFinite(prev) || prev===0) return null;
+    return (last - prev)/prev*100;
+  }
+  function set(id, txt){
+    const el = document.getElementById(id);
+    if(el) el.textContent = txt;
+  }
+
+  async function run(){
+    try{
+      const cache = await loadCache();
+      const cpiArr = normalizeSeries(cache, 'CPIAUCSL');
+      const unArr = normalizeSeries(cache, 'UNRATE');
+      const tenArr = normalizeSeries(cache, 'DGS10');
+      const hsArr = normalizeSeries(cache, 'HOUST');
+
+      const cpi = cpiYoY(cpiArr);
+      const un = latest(unArr);
+      const ten = latest(tenArr);
+      const hs = latest(hsArr);
+
+      set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
+      set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
+      set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
+      set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
+    }catch(e){
+      console.warn('[fred-cache-v7] KPI update failed', e);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();
+</script>
 </body>
 </html>
