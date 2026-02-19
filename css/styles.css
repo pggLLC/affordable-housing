@@ -693,30 +693,16 @@ a:hover {
     }
 }
 
-/* === LEGIBILITY OVERRIDES (v7) === */
-html, body{
-  background: var(--bg-primary, #f8fafc);
-  color: var(--text-primary, #0f172a);
+/* === LEGIBILITY OVERRIDES (v8) === */
+body, p, li, td, th, label, small, span { color: var(--text-primary); }
+.muted, .subtle, .text-muted { color: var(--text-secondary); }
+.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
-/* Text */
-body, body *{
-  color: inherit;
-}
-h1,h2,h3,h4,h5,h6{ color: var(--text-primary, #0f172a); }
-p,li,td,th,small,span,label{ color: var(--text-primary, #0f172a); }
-.muted, .subtle, .hint{ color: var(--text-secondary, #334155); }
-a{ color: var(--link, #1d4ed8); }
+/* SVG labels */
+svg text { fill: var(--text-primary); }
+/* If any page sets light text, normalize common utility classes */
+.text-white, .text-light { color: var(--text-primary) !important; }
 
-/* Surfaces */
-.card, .panel, .section, .content, .chart-card, .kpi-card, .stat-card, .controls, .toolbar{
-  background: var(--card, #ffffff);
-  color: var(--text-primary, #0f172a);
-  border: 1px solid var(--border, rgba(15,23,42,.14));
-}
-
-/* Charts / SVG labels */
-svg text{ fill: var(--text-primary, #0f172a); }
-canvas{ background: transparent !important; }
-
-/* If any page forces light text classes */
-.text-light, .text-white, .light-text{ color: var(--text-primary, #0f172a) !important; }

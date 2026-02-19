@@ -370,15 +370,21 @@ body[data-page="housing-legislation-2026.html"] ol {
   color: rgba(255,255,255,0.92) !important;
 }
 
-/* === LIGHT THEME BASE (v7) === */
+/* === LIGHT THEME DEFAULTS (v8) === */
 :root{
-  --bg-primary:#f8fafc;
-  --bg-secondary:#ffffff;
-  --panel:#ffffff;
-  --card:#ffffff;
-  --text-primary:#0f172a;
-  --text-secondary:#334155;
-  --muted:#475569;
-  --border:rgba(15,23,42,.14);
-  --link:#1d4ed8;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --muted: #475569;
+  --border: rgba(15,23,42,.14);
+  --link: #1d4ed8;
 }
+body{
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+a{ color: var(--link); }
+
