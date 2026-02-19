@@ -202,29 +202,7 @@ function getKey(){ return CONFIG_KEY || ""; }
   async function fetchFRED(seriesId, apiKey, limit=84){
     const data = await _loadFredData();
     const entry = data.series && data.series[seriesId];
-
-    // If the series isn't in cached data (e.g., CPIAUCSL may be missing), fall back to live FRED API.
-    if (!entry || !entry.observations){
-      const key = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : (apiKey || "");
-      if (!key) throw new Error(seriesId + ": missing FRED_API_KEY in js/config.js");
-
-      const params = new URLSearchParams({
-        series_id: seriesId,
-        api_key: key,
-        file_type: "json",
-        sort_order: "desc",
-        limit: String(Math.max(24, limit || 84))
-      });
-      const res = await fetch("https://api.stlouisfed.org/fred/series/observations?" + params.toString());
-      if (!res.ok) throw new Error(seriesId + ": live FRED fetch failed (HTTP " + res.status + ")");
-      const j = await res.json();
-      const obs = (j.observations || [])
-        .filter(o => o && o.value !== "." && o.value != null && o.date)
-        .map(o => ({date: o.date, value: Number(o.value)}))
-        .filter(o => isFinite(o.value))
-        .reverse(); // chronological
-      return obs.slice(Math.max(0, obs.length - (limit || 84)));
-    }
+    if (!entry || !entry.observations) throw new Error(seriesId + ": series not found in cached data");
     const obs = entry.observations
       .filter(o => o && o.value !== "." && o.value !== null && o.date)
       .map(o => ({date: o.date, value: Number(o.value)}))
@@ -418,6 +396,54 @@ function getKey(){ return CONFIG_KEY || ""; }
 })();
 </script>
 <script src="js/contrast-guard.js"></script><script src="js/census-geo.js"></script><script src="js/fred-cards.js"></script>
+
+
+<script id="fred-kpi-inline-loader">
+(async function () {
+  try {
+    const key = window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY ? window.APP_CONFIG.FRED_API_KEY : "";
+    if (!key) { console.warn("[kpi] Missing window.APP_CONFIG.FRED_API_KEY"); return; }
+
+    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+    async function latest(seriesId, params) {
+      const url = new URL("https://api.stlouisfed.org/fred/series/observations");
+      url.searchParams.set("api_key", key);
+      url.searchParams.set("file_type", "json");
+      url.searchParams.set("series_id", seriesId);
+      url.searchParams.set("sort_order", "desc");
+      url.searchParams.set("limit", "1");
+      if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error(seriesId + " HTTP " + res.status);
+      const json = await res.json();
+      const obs = json && json.observations && json.observations[0] ? json.observations[0] : null;
+      if (!obs || obs.value === "." || obs.value == null) throw new Error(seriesId + " no value");
+      return Number(obs.value);
+    }
+
+    // show loading
+    ["statCpi","statUnemp","stat10y","statStarts"].forEach(id => setTxt(id, "Loading…"));
+
+    // CPI YoY (pc1 = percent change from year ago)
+    try { const v = await latest("CPIAUCSL", { units: "pc1" }); setTxt("statCpi", v.toFixed(1) + "%"); }
+    catch(e){ console.warn(e); setTxt("statCpi","—"); }
+
+    try { const v = await latest("UNRATE"); setTxt("statUnemp", v.toFixed(1) + "%"); }
+    catch(e){ console.warn(e); setTxt("statUnemp","—"); }
+
+    try { const v = await latest("DGS10"); setTxt("stat10y", v.toFixed(2) + "%"); }
+    catch(e){ console.warn(e); setTxt("stat10y","—"); }
+
+    // HOUST is "Thousands of Units" SAAR
+    try { const v = await latest("HOUST"); const units = v*1000; setTxt("statStarts", (units>=1e6?(units/1e6).toFixed(2)+"M":units>=1e3?(units/1e3).toFixed(0)+"k":Math.round(units).toString())); }
+    catch(e){ console.warn(e); setTxt("statStarts","—"); }
+
+  } catch (err) {
+    console.warn("[kpi] fatal", err);
+  }
+})();
+</script>
 
 </body>
 </html>
