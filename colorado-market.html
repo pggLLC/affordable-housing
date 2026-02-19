@@ -7,71 +7,13 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="css/styles.css" rel="stylesheet"/>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<style>
+<script defer="defer" src="js/navigation.js"></script>
 
-/* Readability guard:
-   - Uses theme variables when available.
-   - Falls back to high-contrast light/dark defaults if theme CSS fails to load.
-   - Prevents "light text on light bg" and "dark text on dark bg".
-*/
-:root{
-  --fallback-bg:#ffffff;
-  --fallback-bg-alt:#f4f6f8;
-  --fallback-text:#111827;
-  --fallback-muted:#4b5563;
-  --fallback-border:#e5e7eb;
-  --fallback-link:#1d4ed8;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --fallback-bg:#0b0f14;
-    --fallback-bg-alt:#111827;
-    --fallback-text:#f9fafb;
-    --fallback-muted:rgba(249,250,251,.78);
-    --fallback-border:rgba(249,250,251,.14);
-    --fallback-link:#8ab4ff;
-  }
-}
 
-body{
-  background: var(--color-background, var(--fallback-bg));
-  color: var(--color-text, var(--fallback-text));
-}
-
-p, li, td, th, blockquote, label, small{
-  color: var(--color-text, var(--fallback-text));
-}
-
-.muted, .text-muted{
-  color: var(--color-text-muted, var(--fallback-muted)) !important;
-}
-
-a, a:visited{
-  color: var(--color-primary, var(--fallback-link));
-  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
-}
-a:hover, a:focus{
-  text-decoration-color: currentColor;
-}
-
-.hero, .card, .content-card, .section-card, .table-container, .callout, .definition-card,
-.chart-card, .stat-card, .data-table{
-  background: var(--color-background-alt, var(--fallback-bg-alt));
-  border-color: var(--color-border, var(--fallback-border));
-  color: inherit;
-}
-
-table{
-  color: inherit;
-}
-thead th, tbody td{
-  color: inherit;
-}
-
-</style><script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body data-page="colorado-market.html">
 <div id="site-header"></div>
@@ -198,7 +140,7 @@ thead th, tbody td{
 </ul>
 </div>
 </div>
-<script src="js/main.js"></script>
+
 <script src="js/data-service.js"></script>
 <script src="js/citations.js"></script>
 <script src="js/forecasting.js"></script>
@@ -281,7 +223,7 @@ thead th, tbody td{
             }
         });
     </script>
-<script defer="" src="js/navigation.js"></script>
+
 <script src="js/contrast-guard.js"></script>
 </body>
 </html>

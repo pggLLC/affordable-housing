@@ -4,93 +4,18 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>2026 Federal LIHTC Information by State | LIHTC Analytics Hub</title>
-<link href="css/mid-century-modern-dark.css" rel="stylesheet"/>
-<style>
-        /* Map-specific styles */
-        #us-map-container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 2rem auto;
-            background-color: #1a1714;
-            border-radius: 8px;
-            padding: 2rem;
-        }
-        
-        .state-path {
-            fill: #4a4035;
-            stroke: #d4a574;
-            stroke-width: 1.5;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .state-path:hover {
-            fill: #5a5045;
-            stroke: #e8dcc4;
-            stroke-width: 2.5;
-        }
-        
-        .state-label {
-            fill: #e8dcc4;
-            font-size: 11px;
-            font-weight: 600;
-            text-anchor: middle;
-            pointer-events: none;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        
-        /* Tooltip */
-        .map-tooltip {
-            position: absolute;
-            background-color: #2a2520;
-            border: 2px solid #d4a574;
-            border-radius: 8px;
-            padding: 1rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-            min-width: 250px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-        
-        .map-tooltip.visible {
-            opacity: 1;
-        }
-        
-        .tooltip-title {
-            color: #d4a574;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        .tooltip-data {
-            font-size: 0.9rem;
-            line-height: 1.8;
-        }
-        
-        .tooltip-status {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
-        }
-        
-        .status-confirmed {
-            background-color: #2d5016;
-            color: #90ee90;
-        }
-        
-        .status-estimated {
-            background-color: #4a3a1a;
-            color: #ffd700;
-        }
-    </style>
 
-<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+<style>
+#map-wrapper, body { background: var(--bg); }
+.legend-label { color: var(--muted); }
+.legend-label-success { color: var(--good); }
+.legend-label-warning { color: var(--warn); }
+</style>
+
+<script defer="defer" src="js/navigation.js"></script>
+
+
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body>
 <header>
@@ -338,11 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <!-- LIHTC Upgrade Package -->
-<link href="css/responsive-nav.css" rel="stylesheet"/>
-<script src="js/responsive-nav.js"></script>
+
+
 <script src="js/fred-commodities.js"></script>
 <script src="js/config.js"></script>
-<script src="js/navigation.js"></script>
+
 <script src="js/contrast-guard.js"></script>
 </body>
 </html>

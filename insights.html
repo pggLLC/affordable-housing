@@ -6,153 +6,7 @@
 <title>Market Insights - LIHTC Analytics Hub</title>
 <meta content="Expert analysis and market intelligence for LIHTC professionals and investors." name="description"/>
 
-<style>
-/* High-contrast text enforcement */
-:root {
-  --text-primary: #f1f1f1;
-  --text-secondary: rgba(241,241,241,0.85);
-  --text-muted: rgba(241,241,241,0.65);
-  --bg-dark: #121212;
-  --bg-surface: rgba(255,255,255,0.06);
-  --border-color: rgba(241,241,241,0.18);
-  --link-color: #8ab4ff;
-  --link-hover: #c7dcff;
-  --section-spacing: 1.75rem;
-}
-
-body {
-  background: var(--bg-dark) !important;
-  color: var(--text-primary) !important;
-}
-
-p, li, td, th, blockquote, span, div, label {
-  color: var(--text-primary) !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-primary) !important;
-}
-
-a, a:visited {
-  color: var(--link-color) !important;
-}
-
-a:hover, a:focus {
-  color: var(--link-hover) !important;
-}
-
-table {
-  color: var(--text-primary) !important;
-}
-
-thead th {
-  background: var(--bg-surface) !important;
-  color: var(--text-primary) !important;
-}
-
-tbody td {
-  color: var(--text-primary) !important;
-}
-
-.hero, .card, .content-card, .chart-card, .stat-card, 
-.feature-card, .dashboard-grid > div {
-  background: var(--bg-surface) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Professional section dividers */
-.section-divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--border-color) 20%, var(--border-color) 80%, transparent);
-  margin: var(--section-spacing) 0;
-}
-
-/* Better spacing for feature cards */
-.feature-card {
-  margin-bottom: 0.9rem;
-  padding: 1.0rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-  border-color: var(--link-color);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(138, 180, 255, 0.15);
-}
-
-.feature-card h3 {
-  margin-bottom: 1rem;
-}
-
-.feature-card .feature-description {
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.feature-card .read-more {
-  display: inline-block;
-  margin-top: 0.5rem;
-  color: var(--link-color) !important;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.feature-card .read-more:hover {
-  color: var(--link-hover) !important;
-}
-
-/* Trend items spacing */
-.trend-item {
-  margin-bottom: 1.1rem;
-  padding-bottom: 3rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.trend-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-/* Data sources section */
-.data-sources {
-  margin-top: var(--section-spacing);
-  padding: 1.0rem;
-  background: var(--bg-surface);
-  border-radius: 12px;
-  border-left: 4px solid var(--color-accent);
-}
-
-.data-sources h3 {
-  color: var(--color-primary);
-  margin-bottom: 0.9rem;
-  font-size: 0.92rem;
-}
-
-.data-sources ul {
-  line-height: 2;
-  margin-left: 1.5rem;
-}
-
-.data-sources li {
-  margin-bottom: 1rem;
-}
-
-.data-sources a {
-  color: var(--link-color) !important;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.data-sources a:hover {
-  border-bottom-color: var(--link-hover);
-}
-</style>
-<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+<script defer="defer" src="js/navigation.js"></script>
 
 <style>
 /* Compact layout override for insights page */
@@ -193,7 +47,6 @@ p, li {
   margin-bottom: 0.6rem !important;
 }
 </style>
-
 
 <style>
 /* CLEAN INSIGHTS FULLY: ultra-compact dashboard density (matches economic-dashboard.html) */
@@ -265,6 +118,9 @@ body[data-page="insights.html"] a[href="colorado-deep-dive.html"]{
 }
 </style>
 
+
+
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body data-page="insights.html">
 <main>
@@ -286,19 +142,19 @@ Comprehensive analysis featuring interactive maps of DDAs &amp; QCTs, AMI breakd
 </p>
 <!-- Stats Grid -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.0rem;">
-<div style="text-align: center; padding: 0.9rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+<div style="text-align: center; padding: 0.9rem; background: var(--accent-dim); border-radius: 8px;">
 <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">$169</div>
 <div style="font-size: 0.875rem; color: var(--color-text-muted);">Avg Concession/Month</div>
 </div>
-<div style="text-align: center; padding: 0.9rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+<div style="text-align: center; padding: 0.9rem; background: var(--accent-dim); border-radius: 8px;">
 <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">7.6%</div>
 <div style="font-size: 0.875rem; color: var(--color-text-muted);">Denver Vacancy (16-yr high)</div>
 </div>
-<div style="text-align: center; padding: 0.9rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+<div style="text-align: center; padding: 0.9rem; background: var(--accent-dim); border-radius: 8px;">
 <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);">3.7%</div>
 <div style="font-size: 0.875rem; color: var(--color-text-muted);">Unemployment (4th lowest)</div>
 </div>
-<div style="text-align: center; padding: 0.9rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+<div style="text-align: center; padding: 0.9rem; background: var(--accent-dim); border-radius: 8px;">
 <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-success);">LOW</div>
 <div style="font-size: 0.875rem; color: var(--color-text-muted);">Foreclosure Risk</div>
 </div>
@@ -629,7 +485,7 @@ Market insights and forecasts are derived from a combination of quantitative dat
 </div>
 </div>
 </div>
-<script src="js/main.js"></script>
+
 </main>
 <script src="js/contrast-guard.js"></script>
 </body>

@@ -10,7 +10,7 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
 <!-- Styles -->
-<link href="css/styles.css" rel="stylesheet"/>
+
 <style>
         .article-container {
             max-width: 800px;
@@ -71,80 +71,11 @@
         }
     </style>
 
-<style>
+<script defer="defer" src="js/navigation.js"></script>
 
-/* Readability guard:
-   - Uses theme variables when available.
-   - Falls back to high-contrast light/dark defaults if theme CSS fails to load.
-   - Prevents "light text on light bg" and "dark text on dark bg".
-*/
-:root{
-  --fallback-bg:#ffffff;
-  --fallback-bg-alt:#f4f6f8;
-  --fallback-text:#111827;
-  --fallback-muted:#4b5563;
-  --fallback-border:#e5e7eb;
-  --fallback-link:#1d4ed8;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --fallback-bg:#0b0f14;
-    --fallback-bg-alt:#111827;
-    --fallback-text:#f9fafb;
-    --fallback-muted:rgba(249,250,251,.78);
-    --fallback-border:rgba(249,250,251,.14);
-    --fallback-link:#8ab4ff;
-  }
-}
 
-body{
-  background: var(--color-background, var(--fallback-bg));
-  color: var(--color-text, var(--fallback-text));
-}
 
-p, li, td, th, blockquote, label, small{
-  color: var(--color-text, var(--fallback-text));
-}
-
-.muted, .text-muted{
-  color: var(--color-text-muted, var(--fallback-muted)) !important;
-}
-
-a, a:visited{
-  color: var(--color-primary, var(--fallback-link));
-  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
-}
-a:hover, a:focus{
-  text-decoration-color: currentColor;
-}
-
-.hero, .card, .content-card, .section-card, .table-container, .callout, .definition-card,
-.chart-card, .stat-card, .data-table{
-  background: var(--color-background-alt, var(--fallback-bg-alt));
-  border-color: var(--color-border, var(--fallback-border));
-  color: inherit;
-}
-
-table{
-  color: inherit;
-}
-thead th, tbody td{
-  color: inherit;
-}
-
-:root{--color-text-light: var(--color-text-muted, var(--fallback-muted));}
-
-</style><script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
-
-<style id="GLOBAL-LIGHT-OVERRIDE">
-  body{ background: var(--bg-primary,#f8fafc) !important; color: var(--text-primary,#111) !important; }
-  main, .container, .content, .card, section{ background: var(--bg-secondary,#fff) !important; color: var(--text-primary,#111) !important; }
-  p, li, h1, h2, h3, h4, h5, h6, label, span { color: inherit; }
-  .muted, .small, .subtle { color: var(--text-secondary,#333) !important; }
-  a{ color: var(--accent-primary,#2563eb) !important; }
-  canvas, svg { background: transparent !important; }
-</style>
-
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body data-page="article-pricing.html">
 <div id="site-header"></div>
@@ -355,7 +286,7 @@ thead th, tbody td{
 </div>
 </div>
 </footer>
-<script src="js/main.js"></script>
+
 <div style="margin-top: 4rem; padding: 2rem; background: var(--color-background-alt); border-radius: 8px; border-left: 4px solid var(--color-accent);">
 <h3 style="color: var(--color-primary); margin-bottom: 1.5rem; font-size: 1.25rem;">Data Sources &amp; Methodology</h3>
 <div style="margin-bottom: 1.5rem;">
@@ -427,7 +358,7 @@ thead th, tbody td{
 </div>
 </footer>
 <script src="js/citations.js"></script>
-<script defer="" src="js/navigation.js"></script>
+
 <script src="js/contrast-guard.js"></script>
 </body>
 </html>

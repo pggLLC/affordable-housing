@@ -67,8 +67,8 @@
             font-weight: 600;
         }
         
-        .trend-up { background-color: rgba(231, 76, 60, 0.2); color: #e74c3c; }
-        .trend-down { background-color: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .trend-up { background-color: var(--bad-dim); color: var(--bad); }
+        .trend-down { background-color: var(--good-dim); color: var(--good); }
         
         .price-current {
             font-size: 2rem;
@@ -108,7 +108,10 @@
             color: var(--text-secondary);
         }
     </style>
-<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+<script defer="defer" src="js/navigation.js"></script>
+
+
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body>
 <main>
@@ -288,7 +291,7 @@
         document.addEventListener('DOMContentLoaded', initializeCommodities);
     </script>
 <!-- Navigation -->
-<script src="js/navigation.js"></script>
+
 <script src="js/contrast-guard.js"></script>
 </body>
 </html>

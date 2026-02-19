@@ -133,7 +133,7 @@
         }
         
         .state-path {
-            stroke: #d4a574;
+            stroke: var(--accent2);
             stroke-width: 1.5;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -151,7 +151,7 @@
         }
         
         .state-label {
-            fill: #e8dcc4;
+            fill: var(--text);
             font-size: 10px;
             font-weight: 600;
             text-anchor: middle;
@@ -167,7 +167,7 @@
         
         /* Region colors */
         .region-northeast { fill: #2d6b4f; }
-        .region-south { fill: #d4a574; }
+        .region-south { fill: var(--accent2); }
         .region-midwest { fill: #5a9fb8; }
         .region-west { fill: #c49563; }
         
@@ -284,7 +284,10 @@
             }
         }
     </style>
-<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+<script defer="defer" src="js/navigation.js"></script>
+
+
+  <link rel="stylesheet" href="css/site-theme.css"/>
 </head>
 <body>
 <main>
@@ -387,7 +390,7 @@
 </main>
 <!-- Navigation Script -->
 <script src="js/config.js"></script>
-<script src="js/navigation.js"></script>
+
 <!-- State Data -->
 <script src="js/state-allocations-2026.js"></script>
 <script>
