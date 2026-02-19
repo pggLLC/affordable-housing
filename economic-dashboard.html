@@ -1,104 +1,231 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Economic Dashboard | Affordable Housing</title>
-<meta content="Real-time economic indicators from FRED affecting affordable housing development." name="description"/>
-<!-- Chart.js (client-side) -->
-<script src="js/config.js"></script>
-<script src="js/api-config-wrapper.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
-<script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Economic Dashboard | Affordable Housing</title>
+  <meta name="description" content="Real-time economic indicators from FRED affecting affordable housing development."/>
+  <style>
+    :root{color-scheme: light dark;}
+    :root{
+      --bg-l:#f8fafc; --card-l:#ffffff; --text-l:#0f172a; --muted-l:#475569; --border-l:rgba(15,23,42,.14);
+      --bg-d:#0b1220; --card-d:#0f172a; --text-d:#e5e7eb; --muted-d:#a1a1aa; --border-d:rgba(255,255,255,.12);
+      --accent:#2563eb; --good:#16a34a; --warn:#d97706; --bad:#dc2626; --focus:#fbbf24;
+      --shadow:0 14px 30px rgba(0,0,0,.12);
+      --radius:18px;
+    }
+    @media (prefers-color-scheme: light){:root{--bg:var(--bg-l);--card:var(--card-l);--text:var(--text-l);--muted:var(--muted-l);--border:var(--border-l);}}
+    @media (prefers-color-scheme: dark){:root{--bg:var(--bg-d);--card:var(--card-d);--text:var(--text-d);--muted:var(--muted-d);--border:var(--border-d);}}
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.5;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+    a:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:10px}
+
+    .container{max-width:1160px;margin:0 auto;padding:22px 16px 60px}
+    .nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:saturate(180%) blur(10px);
+      background:color-mix(in srgb,var(--bg) 80%, transparent);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-inner{max-width:1160px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:14px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent)}
+    .links{display:flex;flex-wrap:wrap;gap:10px}
+    .links a{color:var(--text);text-decoration:none;padding:8px 10px;border-radius:12px}
+    .links a:hover{background:color-mix(in srgb,var(--card) 85%, transparent);border:1px solid var(--border);padding:7px 9px}
+
+    .hero{margin-top:14px}
+    .kicker{font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-size:.82rem}
+    h1{margin:8px 0 10px;font-size:clamp(1.8rem,3.1vw,2.6rem);line-height:1.1}
+    .sub{color:var(--muted);max-width:78ch;margin:0}
+
+    .toolbar{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .control{padding:12px 14px;display:flex;gap:10px;align-items:center}
+    .control label{font-weight:700}
+    .control input{
+      width:min(380px,70vw);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb,var(--card) 90%, transparent);
+      color:var(--text);
+    }
+    .btn{
+      cursor:pointer;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb,var(--card) 92%, transparent);
+      color:var(--text);
+      padding:10px 12px;
+      font-weight:800;
+    }
+    .btn.primary{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%, black);color:white}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .status{padding:12px 14px;color:var(--muted)}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--border);
+      background:color-mix(in srgb,var(--card) 92%, transparent);
+      color:var(--muted);font-weight:700;font-size:.9rem
+    }
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+    .stat{grid-column:span 12;padding:14px}
+    .stat .num{font-size:1.6rem;font-weight:900;margin:0}
+    .stat .lbl{margin:4px 0 0;color:var(--muted)}
+    @media (min-width:860px){.stat{grid-column:span 3}}
+
+    details{margin-top:14px}
+    details > summary{
+      list-style:none;cursor:pointer;
+      padding:14px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      font-weight:900;
+    }
+    details > summary::-webkit-details-marker{display:none}
+    .section-body{padding:0 16px 16px}
+    .section-desc{color:var(--muted);margin:0 0 12px}
+
+    .metric-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .metric{grid-column:span 12;padding:14px}
+    @media (min-width:860px){.metric{grid-column:span 4}}
+    .metric h3{margin:0 0 8px;font-size:1rem}
+    .metric .value{font-size:1.6rem;font-weight:950;margin:0}
+    .metric .meta{margin:6px 0 0;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+    .delta{font-weight:900}
+    .delta.up{color:var(--good)}
+    .delta.down{color:var(--bad)}
+    .delta.flat{color:var(--muted)}
+    .chart-wrap{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+    canvas{width:100% !important;height:180px !important}
+
+    .note{margin-top:18px;color:var(--muted);font-size:.95rem}
+    .small{font-size:.9rem}
+    .err{color:var(--bad);font-weight:800}
+  </style>
+
+  <!-- Chart.js (client-side) -->
+  <script src="js/config.js"></script>
+  <script src="js/api-config-wrapper.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-<!-- Navigation (mimics HousingMetrics style) -->
-<main class="container">
+  <!-- Navigation (mimics HousingMetrics style) -->
+  <header class="nav">
+    <div class="nav-inner">
+      <div class="brand"><span class="dot"></span>HousingMetrics</div>
+      <nav class="links" aria-label="Primary">
+        <a href="index.html">LIHTC Data</a>
+        <a href="economic-dashboard.html" aria-current="page">Dashboard</a>
+        <a href="industry-news.html">Industry News</a>
+        <a href="housing-insights.html">Insights</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-<section class="hero">
-<div class="kicker">Real-time • FRED</div>
-<h1>Economic Dashboard</h1>
-<p class="sub">
+  <main class="container">
+    <section class="hero">
+      <div class="kicker">Real-time • FRED</div>
+      <h1>Economic Dashboard</h1>
+      <p class="sub">
         Live economic indicators from the Federal Reserve Economic Data (FRED) that influence affordable housing development:
         construction costs, interest rates, labor, and housing market conditions.
       </p>
-<div class="toolbar">
-<div class="card control" style="flex-wrap:wrap;">
-<span class="pill">FRED connected: <strong id="conn">…</strong></span>
-<span class="pill">Indicators: <strong id="count">—</strong></span>
-<span class="pill">Last updated: <strong id="lastUpdated">—</strong></span>
-<button class="btn primary" id="refresh" type="button">Refresh</button>
-</div>
-</div>
-<div class="grid">
-<div class="card stat">
-<p class="num" id="statCpi">—</p>
-<p class="lbl">Inflation (CPI YoY)</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/CPIAUCSL" rel="noopener" target="_blank">Source: FRED (CPIAUCSL)</a></p></div>
-<div class="card stat">
-<p class="num" id="statUnemp">—</p>
-<p class="lbl">Unemployment rate</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/UNRATE" rel="noopener" target="_blank">Source: FRED (UNRATE)</a></p></div>
-<div class="card stat">
-<p class="num" id="stat10y">—</p>
-<p class="lbl">10-Year Treasury</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">Source: FRED (DGS10)</a></p></div>
-<div class="card stat">
-<p class="num" id="statStarts">—</p>
-<p class="lbl">Housing starts (SAAR)</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/HOUST" rel="noopener" target="_blank">Source: FRED (HOUST)</a></p></div>
-</div>
-<p class="note">
-        Data source: <a href="https://fred.stlouisfed.org" rel="noopener" target="_blank">FRED</a>, Federal Reserve Bank of St. Louis.
+
+      <div class="toolbar">
+        <div class="card control" style="flex-wrap:wrap;">
+          <span class="pill">FRED connected: <strong id="conn">…</strong></span>
+          <span class="pill">Indicators: <strong id="count">—</strong></span>
+          <span class="pill">Last updated: <strong id="lastUpdated">—</strong></span>
+          <button class="btn primary" id="refresh" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card stat">
+          <p class="num" id="statCpi">—</p>
+          <p class="lbl">Inflation (CPI YoY)</p>
+        </div>
+        <div class="card stat">
+          <p class="num" id="statUnemp">—</p>
+          <p class="lbl">Unemployment rate</p>
+        </div>
+        <div class="card stat">
+          <p class="num" id="stat10y">—</p>
+          <p class="lbl">10-Year Treasury</p>
+        </div>
+        <div class="card stat">
+          <p class="num" id="statStarts">—</p>
+          <p class="lbl">Housing starts (SAAR)</p>
+        </div>
+      </div>
+
+      <p class="note">
+        Data source: <a href="https://fred.stlouisfed.org" target="_blank" rel="noopener">FRED</a>, Federal Reserve Bank of St. Louis.
         If charts don’t load, confirm your key is valid and check browser console for errors.
       </p>
-</section><section id="census-stats" style="margin:18px 0; padding:18px;"><h2>Census snapshot</h2><div class="census-controls"><label>Geography<select id="censusLevel"><option value="state">State</option><option value="county">County</option><option value="place">Place</option></select></label><label id="censusStateWrap">State<select id="censusState"></select></label><label>Select<select id="censusGeo"></select></label><div class="census-vintage" data-census-vintage="">Loading…</div></div><div class="census-grid"></div></section>
-<!-- Collapsible sections (Nixvir-like: metric cards with inline charts) -->
-<details class="card" open="">
-<summary>
+    </section>
+
+    <!-- Collapsible sections (Nixvir-like: metric cards with inline charts) -->
+    <details open class="card">
+      <summary>
         Construction Costs
         <span class="pill small">6 indicators</span>
-</summary>
-<div class="section-body">
-<p class="section-desc">Producer price indices and cost proxies that impact per-unit construction budgets and feasibility.</p>
-<div class="metric-grid" id="sec-construction"></div>
-</div>
-</details>
-<details class="card">
-<summary>
+      </summary>
+      <div class="section-body">
+        <p class="section-desc">Producer price indices and cost proxies that impact per-unit construction budgets and feasibility.</p>
+        <div class="metric-grid" id="sec-construction"></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>
         Housing Market
         <span class="pill small">6 indicators</span>
-</summary>
-<div class="section-body">
-<p class="section-desc">Starts, permits, prices, and affordability signals that shape pipeline and underwriting assumptions.</p>
-<div class="metric-grid" id="sec-housing"></div>
-</div>
-</details>
-<details class="card">
-<summary>
-        Financial &amp; Interest Rates
+      </summary>
+      <div class="section-body">
+        <p class="section-desc">Starts, permits, prices, and affordability signals that shape pipeline and underwriting assumptions.</p>
+        <div class="metric-grid" id="sec-housing"></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>
+        Financial & Interest Rates
         <span class="pill small">6 indicators</span>
-</summary>
-<div class="section-body">
-<p class="section-desc">Rates and spreads that move equity pricing, permanent debt terms, and bond execution costs.</p>
-<div class="metric-grid" id="sec-finance"></div>
-</div>
-</details>
-<details class="card">
-<summary>
+      </summary>
+      <div class="section-body">
+        <p class="section-desc">Rates and spreads that move equity pricing, permanent debt terms, and bond execution costs.</p>
+        <div class="metric-grid" id="sec-finance"></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>
         Labor Market
         <span class="pill small">6 indicators</span>
-</summary>
-<div class="section-body">
-<p class="section-desc">Employment, earnings, and labor supply indicators relevant to labor cost pressure and demand.</p>
-<div class="metric-grid" id="sec-labor"></div>
-</div>
-</details>
-<p class="note small">
+      </summary>
+      <div class="section-body">
+        <p class="section-desc">Employment, earnings, and labor supply indicators relevant to labor cost pressure and demand.</p>
+        <div class="metric-grid" id="sec-labor"></div>
+      </div>
+    </details>
+
+    <p class="note small">
       Implementation notes: FRED data is fetched client-side via the FRED API “observations” endpoint.
       Some series update monthly or quarterly; charts show the most recent 5 years (or max available if shorter).
     </p>
-</main>
+  </main>
+
 <script>
 (() => {
   const CONFIG_KEY = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : "";
@@ -395,7 +522,55 @@ function getKey(){ return CONFIG_KEY || ""; }
   loadAll();
 })();
 </script>
-<script src="js/contrast-guard.js"></script><script src="js/census-geo.js"></script><script src="js/fred-cards.js"></script>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function getFREDKey(){
+    return (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : null;
+  }
+  async function fetchSeriesObs(series_id, limit){
+    const key = getFREDKey();
+    if(!key) throw new Error("Missing FRED API key (APP_CONFIG.FRED_API_KEY).");
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(series_id)}&api_key=${encodeURIComponent(key)}&file_type=json&sort_order=desc&limit=${limit||5}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`FRED ${series_id} failed: ${res.status}`);
+    const json = await res.json();
+    return (json && json.observations) ? json.observations : [];
+  }
+  function num(v){
+    const x = parseFloat(v);
+    return Number.isFinite(x) ? x : null;
+  }
+  function fmtPct(x, digits){
+    return (x==null) ? "—" : `${x.toFixed(digits ?? 1)}%`;
+  }
+  async function update(){
+    try{
+      const cpiObs = await fetchSeriesObs("CPIAUCSL", 24);
+      const latest = cpiObs[0] ? num(cpiObs[0].value) : null;
+      const prior = cpiObs[12] ? num(cpiObs[12].value) : null;
+      const yoy = (latest!=null && prior!=null && prior!==0) ? ((latest/prior)-1)*100 : null;
+      if($("stat_cpi_yoy")) $("stat_cpi_yoy").textContent = fmtPct(yoy, 1);
+
+      const unObs = await fetchSeriesObs("UNRATE", 1);
+      const un = unObs[0] ? num(unObs[0].value) : null;
+      if($("stat_unrate")) $("stat_unrate").textContent = fmtPct(un, 1);
+
+      const dgsObs = await fetchSeriesObs("DGS10", 1);
+      const dgs = dgsObs[0] ? num(dgsObs[0].value) : null;
+      if($("stat_dgs10")) $("stat_dgs10").textContent = fmtPct(dgs, 2);
+
+      const hObs = await fetchSeriesObs("HOUST", 1);
+      const houst = hObs[0] ? num(hObs[0].value) : null;
+      if($("stat_houst")) $("stat_houst").textContent = (houst==null) ? "—" : `${Math.round(houst).toLocaleString()}k`;
+    }catch(e){
+      console.warn("Summary stats update failed:", e);
+    }
+  }
+  document.addEventListener("DOMContentLoaded", update);
+})();
+</script>
 
 </body>
 </html>

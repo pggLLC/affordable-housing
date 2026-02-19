@@ -1,167 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Colorado Affordable Housing Deep Dive - LIHTC Analytics Hub</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
-
-  <link rel="stylesheet" href="css/site-theme.css"/>
-  <link rel="stylesheet" href="css/styles.css"/>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
-  <!-- Chart.js for existing canvases -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <style>
-    /* Legibility + spacing guardrails (keeps this page readable even if other CSS changes) */
-    :root{
-      --bg:#0b0f14;
-      --surface:#111a24;
-      --surface2:#0e141d;
-      --border:rgba(255,255,255,.12);
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.72);
-      --link:rgba(180,210,255,.95);
-    }
-    html,body{background:var(--bg) !important; color:var(--text) !important; font-size:0.85rem; line-height:1.45;}
-    a{color:var(--link) !important;}
-    /* tighten hero padding vs the old huge top padding */
-    .page-container{max-width:1200px; margin:0 auto; padding: 6.25rem 1.5rem 3rem;}
-    @media (max-width: 700px){ .page-container{padding: 5.25rem 1rem 2.5rem;} }
-    #coMap{height: 600px; width: 100%; border-radius: 10px; border: 1px solid var(--border); overflow:hidden;}
-    .map-legend{background: rgba(17,26,36,.96); color: rgba(255,255,255,.9); padding: 10px 12px; border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(0,0,0,.35); font-size: 12px; line-height: 1.3;}
-    .map-legend .row{display:flex; align-items:center; gap:8px; margin:6px 0;}
-    .dot{width:10px; height:10px; border-radius:50%; display:inline-block;}
-    .swatch{width:14px; height:10px; border-radius:3px; display:inline-block; border:1px solid rgba(255,255,255,.18);}
-    .map-controls{display:flex; flex-wrap:wrap; gap:.65rem; align-items:center; margin: .75rem 0 .25rem;}
-    .map-controls label{display:flex; gap:.35rem; align-items:center; color: var(--muted); font-size:.9rem;}
-
-    /* Leaflet tooltip/popup readability on dark theme */
-    .leaflet-tooltip{background: rgba(15,22,32,0.92) !important; color: rgba(255,255,255,0.92) !important;
-      border: 1px solid rgba(255,255,255,0.14) !important; box-shadow: 0 6px 20px rgba(0,0,0,0.35) !important;}
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip{background: rgba(17,26,36,0.98) !important; color: rgba(255,255,255,0.92) !important;}
-  </style>
-
-  <style>
-    /* KPI grid (economic-dashboard style) */
-    .kpi-grid{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: .75rem;
-      margin: .25rem 0 1rem;
-    }
-    @media (max-width: 980px){
-      .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-    @media (max-width: 560px){
-      .kpi-grid{ grid-template-columns: 1fr; }
-    }
-    .kpi-card{
-      background: var(--surface, rgba(17,26,36,.95));
-      border: 1px solid var(--border, rgba(255,255,255,.12));
-      border-radius: 14px;
-      padding: .85rem .9rem;
-    }
-    .kpi-value{
-      font-weight: 750;
-      font-size: 1.15rem;
-      line-height: 1.1;
-      color: var(--text, rgba(255,255,255,.92));
-      margin-bottom: .25rem;
-      letter-spacing: .2px;
-    }
-    .kpi-label{
-      font-size: .85rem;
-      color: var(--muted, rgba(255,255,255,.72));
-      line-height: 1.25;
-      margin-bottom: .35rem;
-    }
-    .kpi-source a{
-      font-size: .78rem;
-      color: var(--link, rgba(180,210,255,.95));
-      text-decoration: none;
-    }
-    .kpi-source a:hover{ text-decoration: underline; }
-  </style>
-
-
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Colorado Affordable Housing Deep Dive - LIHTC Analytics Hub</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="css/styles.css" rel="stylesheet"/>
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* Compact typography aligned with economic-dashboard.html */
+        #colorado-map { height: 600px; width: 100%; border-radius: 8px; }
+        .legend { background: white; padding: 10px; border-radius: 4px; border: 2px solid #ccc; }
+        .legend-item { margin: 5px 0; display: flex; align-items: center; gap: 8px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 50%; }
+        .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    </style>
+<link href="css/unified-theme.css" rel="stylesheet"/>
+<style>
+
+/* Readability guard:
+   - Uses theme variables when available.
+   - Falls back to high-contrast light/dark defaults if theme CSS fails to load.
+   - Prevents "light text on light bg" and "dark text on dark bg".
+*/
 :root{
-  --font-size-body: 0.9rem;
-  --font-size-small: 0.78rem;
-  --font-size-heading: 1.05rem;
-  --font-size-title: 1.35rem;
-  --font-size-kpi: 1.1rem;
+  --fallback-bg:#ffffff;
+  --fallback-bg-alt:#f4f6f8;
+  --fallback-text:#111827;
+  --fallback-muted:#4b5563;
+  --fallback-border:#e5e7eb;
+  --fallback-link:#1d4ed8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --fallback-bg:#0b0f14;
+    --fallback-bg-alt:#111827;
+    --fallback-text:#f9fafb;
+    --fallback-muted:rgba(249,250,251,.78);
+    --fallback-border:rgba(249,250,251,.14);
+    --fallback-link:#8ab4ff;
+  }
 }
 
 body{
-  font-size: var(--font-size-body) !important;
-  line-height: 1.45 !important;
+  background: var(--color-background, var(--fallback-bg));
+  color: var(--color-text, var(--fallback-text));
 }
 
-h1{
-  font-size: var(--font-size-title) !important;
-  font-weight: 650 !important;
-  margin-bottom: .4rem !important;
+p, li, td, th, blockquote, label, small{
+  color: var(--color-text, var(--fallback-text));
 }
 
-h2{
-  font-size: var(--font-size-heading) !important;
-  font-weight: 600 !important;
-  margin-bottom: .35rem !important;
+.muted, .text-muted{
+  color: var(--color-text-muted, var(--fallback-muted)) !important;
 }
 
-h3{
-  font-size: calc(var(--font-size-heading) * 0.95) !important;
+a, a:visited{
+  color: var(--color-primary, var(--fallback-link));
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+a:hover, a:focus{
+  text-decoration-color: currentColor;
 }
 
-p, li, span{
-  font-size: var(--font-size-body) !important;
+.hero, .card, .content-card, .section-card, .table-container, .callout, .definition-card,
+.chart-card, .stat-card, .data-table{
+  background: var(--color-background-alt, var(--fallback-bg-alt));
+  border-color: var(--color-border, var(--fallback-border));
+  color: inherit;
 }
 
-.small, .chart-subtitle, .stat-label{
-  font-size: var(--font-size-small) !important;
+table{
+  color: inherit;
+}
+thead th, tbody td{
+  color: inherit;
 }
 
-.stat-value, .kpi-value{
-  font-size: var(--font-size-kpi) !important;
-  font-weight: 700 !important;
-}
-
-.stat-label, .kpi-label{
-  font-size: var(--font-size-small) !important;
-}
-
-.chart-title{
-  font-size: var(--font-size-heading) !important;
-}
-
-.chart-card{
-  padding: .85rem .9rem !important;
-}
-
-.section{
-  margin: .85rem 0 1rem !important;
-}
+:root{--color-text-light: var(--color-text-muted, var(--fallback-muted));}
 
 </style>
-
+<style>
+/* Colorado deep dive contrast guard */
+body{background:#0b0f14 !important; color:rgba(255,255,255,.92) !important;}
+.card,.chart-card,.content-section,section{background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,.92) !important; border-color: rgba(255,255,255,.14) !important;}
+h1,h2,h3,h4,p,li,span{color: inherit !important;}
+a{color: rgba(180,210,255,.95) !important;}
+</style>
 </head>
+<body data-page="colorado-deep-dive.html" >
+<div id="site-header"></div>
 
-<body data-page="colorado-deep-dive.html">
-  <div id="site-header"></div>
 
-  <div class="page-container">
-    
+<div style="max-width: 1200px; margin: 0 auto; padding: 8rem 2rem 4rem;">
 <div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-primary); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1.5rem;">
             Colorado Market Deep Dive
         </div>
@@ -169,76 +104,54 @@ p, li, span{
 <p style="font-size: 1.25rem; color: var(--color-text-light); line-height: 1.7; margin-bottom: 3rem;">
             Comprehensive analysis of DDAs, QCTs, LIHTC projects, market dynamics, concessions, foreclosures, and comparative performance
         </p>
-<section class="section" aria-label="Key indicators">
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-value">$287M</div>
-      <div class="kpi-label">Annual LIHTC Allocation</div>
-      <div class="kpi-source"><a href="https://www.novoco.com/resource-centers/affordable-housing-tax-credits" target="_blank" rel="noopener">Source</a></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">78</div>
-      <div class="kpi-label">Active Projects</div>
-      <div class="kpi-source"><a href="https://www.huduser.gov/lihtc/" target="_blank" rel="noopener">Source</a></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">7.6%</div>
-      <div class="kpi-label">Denver Vacancy Rate (Q4 2025)</div>
-      <div class="kpi-source"><a href="https://www.cbre.com/insights/books/us-real-estate-market-outlook-2025/multifamily" target="_blank" rel="noopener">Source</a></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">$169</div>
-      <div class="kpi-label">Avg Monthly Concession</div>
-      <div class="kpi-source"><a href="https://www.cbre.com/insights/books/us-real-estate-market-outlook-2025/multifamily" target="_blank" rel="noopener">Source</a></div>
-    </div>
-  </div>
-</section>
-
+<!-- Market Overview Stats -->
+<div class="hero-stats" style="margin: 3rem 0;">
+<div class="stat-card">
+<div class="stat-value">$287M</div>
+<div class="stat-label">Annual LIHTC Allocation</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">78</div>
+<div class="stat-label">Active Projects</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">7.6%</div>
+<div class="stat-label">Denver Vacancy Rate (Q4 2025)</div>
+</div>
+<div class="stat-card">
+<div class="stat-value">$169</div>
+<div class="stat-label">Avg Monthly Concession</div>
+</div>
+</div>
 <h2>Interactive Map: DDAs, QCTs &amp; LIHTC Projects</h2>
-    <div class="chart-card" style="margin: 1.5rem 0;">
-      <div class="chart-header">
-        <h3 class="chart-title">Colorado LIHTC Opportunity Zones Map</h3>
-        <p class="chart-subtitle">Zoomable Colorado-only map with counties, places, LIHTC projects (HUD), and HUD 2026 QCT/DDA overlays.</p>
-      </div>
-
-      <div class="map-controls" role="group" aria-label="Map layers and filters">
-        <label><input type="checkbox" id="layerCounties" checked> Counties</label>
-        <label><input type="checkbox" id="layerPlaces"> Places</label>
-        <label><input type="checkbox" id="layerQCT" checked> QCT overlay (2026)</label>
-        <label><input type="checkbox" id="layerDDA" checked> DDA overlay (2026)</label>
-        <label><input type="checkbox" id="filterQCT"> Only QCT projects</label>
-        <label><input type="checkbox" id="filterDDA"> Only DDA projects</label>
-      </div>
-
-      <div id="coMap"></div>
-
-      <div style="margin-top: 1rem; padding: 1rem; background: var(--color-background-alt, rgba(17,26,36,.65)); border-radius: 8px; border: 1px solid var(--border);">
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem;">
-          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
-            <span class="swatch" style="background:rgba(255,200,90,.20); border-color:rgba(255,200,90,.45)"></span>
-            <span><strong>DDA Zones</strong> — 30% basis boost</span>
-          </div>
-          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
-            <span class="swatch" style="background:rgba(120,255,170,.22); border-color:rgba(120,255,170,.45)"></span>
-            <span><strong>QCT Zones</strong> — 30% basis boost</span>
-          </div>
-          <div class="legend-item" style="display:flex; gap:10px; align-items:center;">
-            <span class="dot" style="background:#5fa8ff;"></span>
-            <span><strong>LIHTC Projects</strong> — HUD LIHTC Database (mapped)</span>
-          </div>
-        </div>
-
-        <div style="margin-top:.75rem; font-size: 12px; color: var(--muted); line-height:1.5;">
-          <strong>Data sources:</strong>
-          <a href="https://www.policymap.com/data/sources/hud-lihtc" target="_blank" rel="noopener">PolicyMap: HUD LIHTC</a> •
-          <a href="https://www.huduser.gov/lihtc/" target="_blank" rel="noopener">HUD LIHTC Database</a> •
-          <a href="https://egis.hud.gov/arcgis/rest/services/affht/AffhtMapService/MapServer/30" target="_blank" rel="noopener">HUD eGIS LIHTC map service</a> •
-          <a href="https://www.huduser.gov/portal/sadda/sadda_qct.html" target="_blank" rel="noopener">HUD QCT/DDA</a>
-        </div>
-      </div>
-    </div>
-
-    <h2>Area Median Income (AMI) Analysis</h2>
+<div class="chart-card" style="margin: 2rem 0;">
+<div class="chart-header">
+<h3 class="chart-title">Colorado LIHTC Opportunity Zones Map</h3>
+<p class="chart-subtitle">Difficult Development Areas (DDAs), Qualified Census Tracts (QCTs), and Active LIHTC Projects</p>
+</div>
+<div id="colorado-map"></div>
+<div style="margin-top: 1rem; padding: 1rem; background: var(--color-background-alt); border-radius: 4px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+<div class="legend-item">
+<div class="legend-color" style="background: #FFB84D;"></div>
+<span><strong>DDA Zones</strong> - 30% basis boost</span>
+</div>
+<div class="legend-item">
+<div class="legend-color" style="background: #4CAF50;"></div>
+<span><strong>QCT Zones</strong> - 30% basis boost</span>
+</div>
+<div class="legend-item">
+<div class="legend-color" style="background: #2196F3;"></div>
+<span><strong>LIHTC Projects</strong> - Active developments</span>
+</div>
+<div class="legend-item">
+<div class="legend-color" style="background: #9C27B0;"></div>
+<span><strong>Both DDA &amp; QCT</strong> - Maximum benefit</span>
+</div>
+</div>
+</div>
+</div>
+<h2>Area Median Income (AMI) Analysis</h2>
 <div class="dashboard-grid" style="margin: 2rem 0;">
 <div class="chart-card">
 <div class="chart-header">
@@ -823,75 +736,177 @@ p, li, span{
 </div>
 </div>
 </div>
-  </div>
+<script src="js/navigation.js" defer></script>
+<script src="js/main.js"></script>
+<script src="js/citations.js"></script>
+<script src="js/colorado-map-data.js"></script>
+<script src="js/colorado-interactive-map.js"></script>
+<script>
+        // Initialize charts after map loads
+        document.addEventListener('DOMContentLoaded', function() {
 
-  <div id="site-footer"></div>
-
-  <script defer src="js/navigation.js"></script>
-  <script src="js/contrast-guard.js"></script>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <script src="js/co-lihtc-map.js"></script>
-
-  <!-- Lightweight chart init so the restored canvases render even if other JS files are missing -->
-  <script>
-    (function() {
-      if (!window.Chart) return;
-      function safeChart(id, cfg) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        try { new Chart(el, cfg); } catch(e) { console.warn("Chart failed", id, e); }
-      }
-      safeChart("ami-need-chart", {
-        type: "bar",
-        data: {
-          labels: ["30% AMI","50% AMI","60% AMI","80% AMI"],
-          datasets: [{ label:"Households (index)", data:[100, 130, 160, 210] },
-                     { label:"Available units (index)", data:[35, 55, 95, 140] }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
-      });
-      safeChart("concessions-chart", {
-        type: "line",
-        data: {
-          labels: ["2022","2023","2024","2025"],
-          datasets: [{ label:"Avg monthly concession ($)", data:[45, 65, 110, 169], tension:.35 }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
-      });
-      safeChart("foreclosure-chart", {
-        type: "line",
-        data: {
-          labels: ["2023","2024","2025","2026"],
-          datasets: [{ label:"Filings (index)", data:[70, 55, 62, 68], tension:.35 }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
-      });
-      safeChart("confidence-chart", {
-        type: "line",
-        data: {
-          labels: ["Q1","Q2","Q3","Q4"],
-          datasets: [{ label:"Confidence (index)", data:[42, 46, 44, 48], tension:.35 }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
-      });
-      safeChart("comparison-chart", {
-        type: "radar",
-        data: {
-          labels: ["Allocation","Vacancy","Rent Growth","Unemployment","Foreclosure Risk"],
-          datasets: [{ label:"Colorado (index)", data:[62, 78, 35, 70, 68] },
-                     { label:"US Avg (index)", data:[55, 60, 55, 62, 60] }]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { r: { ticks: { color:"rgba(255,255,255,.65)" }, grid: { color:"rgba(255,255,255,.12)" }, angleLines: { color:"rgba(255,255,255,.12)" }, pointLabels: { color:"rgba(255,255,255,.75)" } } }
-      });
-    })();
-  </script>
+    
+<script src="js/co-lihtc-map.js"></script>
 </body>
 </html>
+            const chartColors = {
+                primary: '#1a3a52',
+                accent: '#d4a574',
+                success: '#27ae60',
+                warning: '#f39c12',
+                error: '#c0392b',
+                info: '#3498db'
+            };
+
+            // AMI Need Chart
+            new Chart(document.getElementById('ami-need-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['30% AMI', '50% AMI', '60% AMI', '80% AMI'],
+                    datasets: [{
+                        label: 'Households Needing Housing',
+                        data: [45000, 38000, 32000, 28000],
+                        backgroundColor: chartColors.error
+                    }, {
+                        label: 'Available Affordable Units',
+                        data: [12000, 18000, 24000, 35000],
+                        backgroundColor: chartColors.success
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v =&gt; v.toLocaleString() } }
+                    }
+                }
+            });
+
+            // Concessions Chart
+            new Chart(document.getElementById('concessions-chart'), {
+                type: 'line',
+                data: {
+                    labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'],
+                    datasets: [{
+                        label: 'Avg Monthly Concession',
+                        data: [25, 30, 35, 40, 45, 50, 55, 65, 75, 95, 120, 145, 155, 165, 169, 169],
+                        borderColor: chartColors.error,
+                        backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v =&gt; '$' + v } }
+                    }
+                }
+            });
+
+            // Foreclosure Chart
+            new Chart(document.getElementById('foreclosure-chart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan 23', 'Apr 23', 'Jul 23', 'Oct 23', 'Jan 24', 'Apr 24', 'Jul 24', 'Oct 24', 'Jan 25', 'Apr 25', 'Jul 25', 'Oct 25', 'Jan 26'],
+                    datasets: [{
+                        label: 'Monthly Filings',
+                        data: [120, 135, 145, 160, 175, 190, 205, 220, 235, 250, 265, 280, 290],
+                        borderColor: chartColors.warning,
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    yMin: 500,
+                                    yMax: 500,
+                                    borderColor: chartColors.error,
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'Pre-Pandemic Normal (~500)',
+                                        enabled: true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Confidence Chart
+            new Chart(document.getElementById('confidence-chart'), {
+                type: 'line',
+                data: {
+                    labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'],
+                    datasets: [{
+                        label: 'Buyer Confidence',
+                        data: [45, 42, 40, 38, 41, 44, 47, 50],
+                        borderColor: chartColors.success,
+                        borderWidth: 3,
+                        tension: 0.4
+                    }, {
+                        label: 'Seller Confidence',
+                        data: [65, 60, 55, 50, 45, 43, 44, 46],
+                        borderColor: chartColors.error,
+                        borderWidth: 3,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v =&gt; v } }
+                    }
+                }
+            });
+
+            // Comparison Chart
+            new Chart(document.getElementById('comparison-chart'), {
+                type: 'radar',
+                data: {
+                    labels: ['LIHTC Per Capita', 'Rent Growth', 'Vacancy Rate', 'Credit Pricing', 'Job Growth', 'Foreclosure Risk'],
+                    datasets: [{
+                        label: 'Colorado',
+                        data: [108, 35, 45, 100, 95, 85],
+                        borderColor: chartColors.primary,
+                        backgroundColor: 'rgba(26, 58, 82, 0.2)',
+                        borderWidth: 3
+                    }, {
+                        label: 'National Average',
+                        data: [100, 100, 100, 100, 100, 100],
+                        borderColor: chartColors.info,
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 120,
+                            ticks: { stepSize: 20 }
+                        }
+                    }
+                }
+            });
+        });
+    
