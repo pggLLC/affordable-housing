@@ -202,7 +202,29 @@ function getKey(){ return CONFIG_KEY || ""; }
   async function fetchFRED(seriesId, apiKey, limit=84){
     const data = await _loadFredData();
     const entry = data.series && data.series[seriesId];
-    if (!entry || !entry.observations) throw new Error(seriesId + ": series not found in cached data");
+
+    // If the series isn't in cached data (e.g., CPIAUCSL may be missing), fall back to live FRED API.
+    if (!entry || !entry.observations){
+      const key = (window.APP_CONFIG && window.APP_CONFIG.FRED_API_KEY) ? window.APP_CONFIG.FRED_API_KEY : (apiKey || "");
+      if (!key) throw new Error(seriesId + ": missing FRED_API_KEY in js/config.js");
+
+      const params = new URLSearchParams({
+        series_id: seriesId,
+        api_key: key,
+        file_type: "json",
+        sort_order: "desc",
+        limit: String(Math.max(24, limit || 84))
+      });
+      const res = await fetch("https://api.stlouisfed.org/fred/series/observations?" + params.toString());
+      if (!res.ok) throw new Error(seriesId + ": live FRED fetch failed (HTTP " + res.status + ")");
+      const j = await res.json();
+      const obs = (j.observations || [])
+        .filter(o => o && o.value !== "." && o.value != null && o.date)
+        .map(o => ({date: o.date, value: Number(o.value)}))
+        .filter(o => isFinite(o.value))
+        .reverse(); // chronological
+      return obs.slice(Math.max(0, obs.length - (limit || 84)));
+    }
     const obs = entry.observations
       .filter(o => o && o.value !== "." && o.value !== null && o.date)
       .map(o => ({date: o.date, value: Number(o.value)}))
@@ -396,7 +418,6 @@ function getKey(){ return CONFIG_KEY || ""; }
 })();
 </script>
 <script src="js/contrast-guard.js"></script><script src="js/census-geo.js"></script><script src="js/fred-cards.js"></script>
-<script src="js/fred-kpi-cards.js"></script>
 
 </body>
 </html>
