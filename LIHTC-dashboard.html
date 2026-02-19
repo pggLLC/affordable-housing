@@ -44,16 +44,29 @@ main#main-content { max-width: none !important; width: 100%; padding: 5.5rem 1.2
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg, 16px);
-  overflow: hidden;
   box-shadow: var(--shadow-card);
+  overflow: hidden;  /* clips border-radius on map edges */
 }
 #map-section-header {
-  padding: 1rem 1.25rem 0;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
 }
-#map-section-header h2 { margin: 0 0 0.35rem; }
-#map-wrap { position: relative; }
-#us-map { width: 100%; height: 86vh; min-height: 820px; }
-#us-map svg { width: 100% !important; height: 100% !important; }
+#map-section-header h2 { margin: 0 0 0.25rem; }
+#map-wrap {
+  position: relative;
+  /* No padding here — map fills full width */
+}
+#us-map {
+  width: 100%;
+  height: 82vh;
+  min-height: 760px;
+  display: block;
+}
+#us-map svg {
+  display: block;
+  /* Do NOT use 100% height — let JS set exact pixel height via viewBox */
+  width: 100% !important;
+}
 
 .map-legend {
   position: absolute; right: 14px; top: 14px;
@@ -160,20 +173,18 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
 </div>
 </div>
 </section>
-<div style="margin-top:1.25rem;">
 <div id="map-section-outer">
   <div id="map-section-header">
     <h2>Interactive map</h2>
-<div class="muted small">Switch the map between regional coloring and state allocation intensity. Legend updates automatically. Tooltips show state totals and shares.</div>
-<div id="map-wrap">
-<div class="map-legend" id="map-legend"></div>
-<div class="tooltip" id="map-tooltip">
-<h4 id="tt-title"></h4>
-<div id="tt-body"></div>
-</div>
-<div id="us-map"></div>
-</div>
-
+    <div class="muted small" style="margin-bottom:0;">Switch between regional coloring and state allocation intensity. Tooltips on hover.</div>
+  </div>
+  <div id="map-wrap">
+    <div class="map-legend" id="map-legend"></div>
+    <div class="tooltip" id="map-tooltip">
+      <h4 id="tt-title"></h4>
+      <div id="tt-body"></div>
+    </div>
+    <div id="us-map"></div>
   </div>
 </div>
 <section class="card">
@@ -348,19 +359,26 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
     function ensureMap(){
       const container = document.getElementById('us-map');
       container.innerHTML = '';
-      const width  = container.clientWidth  || 1000;
-      const height = container.clientHeight || Math.round(width * 0.58);
+
+      // Use offsetWidth (reliable at DOMContentLoaded); compute height by AlbersUSA aspect ~1.62:1
+      const width  = container.offsetWidth || container.parentElement?.offsetWidth || 960;
+      // Use a fixed logical height for the projection — CSS will scale SVG to fill the container
+      // AlbersUSA fits nicely in a 960×600 logical space
+      const logicalH = Math.round(width / 1.6);
 
       svg = d3.select(container).append('svg')
         .attr('width', width)
-        .attr('height', height)
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .style('display', 'block');
+        .attr('height', logicalH)
+        .attr('viewBox', `0 0 ${width} ${logicalH}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('display', 'block')
+        .style('width', '100%')
+        .style('height', '100%');
 
       if (!usTopo) return;
 
       const features = topojson.feature(usTopo, usTopo.objects.states).features;
-      const projection = d3.geoAlbersUsa().fitSize([width, height], {type:'FeatureCollection', features});
+      const projection = d3.geoAlbersUsa().fitSize([width, logicalH], {type:'FeatureCollection', features});
       pathGen = d3.geoPath(projection);
 
       svg.append('g').attr('id','states-layer');
@@ -368,7 +386,7 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
       svg.append('path')
         .datum(topojson.mesh(usTopo, usTopo.objects.states, (a,b)=>a!==b))
         .attr('fill','none')
-        .attr('stroke','var(--muted)')
+        .attr('stroke','rgba(255,255,255,0.35)')
         .attr('stroke-width',0.65)
         .attr('d', pathGen);
     }
@@ -469,11 +487,11 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
           if (mode === 'region'){
             const r = getRegionOfState(abbr);
             const c = regionColors[r] || regionColors.other;
-            return inScope ? c : 'rgba(80,80,80,0.20)';
+            return inScope ? c : 'rgba(120,120,130,0.35)';
           } else {
             const pc = Number(s.perCapita)||0;
             const c = scale ? scale(pc) : '#2a2a2a';
-            return inScope ? c : 'rgba(80,80,80,0.20)';
+            return inScope ? c : 'rgba(120,120,130,0.35)';
           }
         })
         .on('mousemove', (event, d) => {
