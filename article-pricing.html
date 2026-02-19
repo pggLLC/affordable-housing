@@ -135,6 +135,16 @@ thead th, tbody td{
 :root{--color-text-light: var(--color-text-muted, var(--fallback-muted));}
 
 </style><script defer="defer" src="js/navigation.js"></script><link href="css/site-theme.css" rel="stylesheet"/>
+
+<style id="GLOBAL-LIGHT-OVERRIDE">
+  body{ background: var(--bg-primary,#f8fafc) !important; color: var(--text-primary,#111) !important; }
+  main, .container, .content, .card, section{ background: var(--bg-secondary,#fff) !important; color: var(--text-primary,#111) !important; }
+  p, li, h1, h2, h3, h4, h5, h6, label, span { color: inherit; }
+  .muted, .small, .subtle { color: var(--text-secondary,#333) !important; }
+  a{ color: var(--accent-primary,#2563eb) !important; }
+  canvas, svg { background: transparent !important; }
+</style>
+
 </head>
 <body data-page="article-pricing.html">
 <div id="site-header"></div>
