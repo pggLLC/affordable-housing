@@ -447,133 +447,76 @@ function getKey(){ return CONFIG_KEY || ""; }
 
 
 <script>
+<script>
 /* KPI CARDS FROM CACHE OVERRIDE */
 (function(){
   function set(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
-  function pct(n, d){ return d ? (100*n/d) : null; }
   function num(v){ var x = Number(v); return isFinite(x) ? x : null; }
-
-  async function load(){
-    try{
-      const res = await fetch('data/fred-data.json', {cache:'no-store'});
-      if(!res.ok) throw new Error('fred-data.json HTTP '+res.status);
-      const data = await res.json();
-      // expected shape: data.series[seriesId] = [{date,value},...]
-      const series = data.series || data || {};
-      function latestValue(id){
-        const arr = series[id];
-        if(!arr || !arr.length) return null;
-        for(let i=arr.length-1;i>=0;i--){
-          const v = arr[i].value ?? arr[i][1] ?? arr[i];
-          const n = num(v);
-          if(n!=null) return n;
-        }
-        return null;
-      }
-      function cpiYoY(){
-        const arr = series['CPIAUCSL'];
-        if(!arr || arr.length < 13) return null;
-        // find last numeric
-        let lastIdx = arr.length-1;
-        while(lastIdx>=0){
-          const v = num(arr[lastIdx].value ?? arr[lastIdx][1] ?? arr[lastIdx]);
-          if(v!=null) { 
-            const v12 = num((arr[lastIdx-12]||{}).value ?? (arr[lastIdx-12]||[])[1] ?? arr[lastIdx-12]);
-            if(v12!=null && v12!==0) return (v - v12)/v12*100;
-            return null;
-          }
-          lastIdx--;
-        }
-        return null;
-      }
-
-      const cpi = cpiYoY();
-      const un = latestValue('UNRATE');
-      const ten = latestValue('DGS10');
-      const hs = latestValue('HOUST');
-
-      set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
-      set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
-      set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
-      set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
-
-    } catch(e){
-      console.warn('[kpi-cache] failed', e);
-    }
+  function getArr(seriesObj, id){
+    var s = seriesObj && seriesObj[id];
+    if(!s) return null;
+    // handle {name, observations:[{date,value}...]}
+    if(Array.isArray(s)) return s;
+    if(Array.isArray(s.observations)) return s.observations;
+    return null;
   }
+  function latest(arr){
+    if(!arr || !arr.length) return null;
+    for(var i=arr.length-1;i>=0;i--){
+      var row = arr[i];
+      var v = (row && row.value!=null) ? row.value : (Array.isArray(row) ? row[1] : row);
+      var n = num(v);
+      if(n!=null) return n;
+    }
+    return null;
+  }
+  function cpiYoY(seriesObj){
+    var arr = getArr(seriesObj, 'CPIAUCSL');
+    if(!arr || arr.length < 13) return null;
+    // last numeric index
+    var j = arr.length-1;
+    while(j>=12){
+      var v = latest(arr.slice(0, j+1));
+      if(v==null){ j--; continue; }
+      // find j numeric value and j-12 numeric value
+      var vj = num(arr[j].value!=null?arr[j].value:(Array.isArray(arr[j])?arr[j][1]:arr[j]));
+      if(vj==null){ j--; continue; }
+      var v12 = num(arr[j-12].value!=null?arr[j-12].value:(Array.isArray(arr[j-12])?arr[j-12][1]:arr[j-12]));
+      if(v12==null || v12===0){ j--; continue; }
+      return (vj - v12)/v12*100;
+    }
+    return null;
+  }
+
+  function warnMissing(id){ console.warn('[kpi-cache] missing series', id); }
+
+  function load(){
+    fetch('data/fred-data.json', {cache:'no-store'})
+      .then(function(res){ if(!res.ok) throw new Error('fred-data.json HTTP '+res.status); return res.json(); })
+      .then(function(data){
+        var seriesObj = data.series || data || {};
+        var cpi = cpiYoY(seriesObj);
+        if(cpi==null) warnMissing('CPIAUCSL');
+        var unArr = getArr(seriesObj, 'UNRATE'); if(!unArr) warnMissing('UNRATE');
+        var tenArr = getArr(seriesObj, 'DGS10'); if(!tenArr) warnMissing('DGS10');
+        var hsArr = getArr(seriesObj, 'HOUST'); if(!hsArr) warnMissing('HOUST');
+
+        var un = latest(unArr);
+        var ten = latest(tenArr);
+        var hs = latest(hsArr);
+
+        set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
+        set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
+        set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
+        set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
+      })
+      .catch(function(e){ console.warn('[kpi-cache] failed', e); });
+  }
+
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
 })();
 </script>
 
-<script>
-/* FRED CACHE ONLY OVERRIDE (v7) - avoid CORS by never calling api.stlouisfed.org from browser */
-(function(){
-  async function loadCache(){
-    const res = await fetch('data/fred-data.json', {cache:'no-store'});
-    if(!res.ok) throw new Error('fred-data.json HTTP '+res.status);
-    return res.json();
-  }
-  function normalizeSeries(cache, id){
-    const series = cache.series || cache || {};
-    const arr = series[id];
-    if(!arr || !arr.length) return null;
-    // accept {date,value} or [date,value]
-    return arr.map(o => {
-      if(Array.isArray(o)) return {date:o[0], value:o[1]};
-      return {date:o.date, value:o.value};
-    }).filter(o => o.value !== "." && o.value != null);
-  }
-  function latest(arr){
-    if(!arr || !arr.length) return null;
-    for(let i=arr.length-1;i>=0;i--){
-      const n = Number(arr[i].value);
-      if(isFinite(n)) return n;
-    }
-    return null;
-  }
-  function cpiYoY(cpiArr){
-    if(!cpiArr || cpiArr.length < 13) return null;
-    const last = latest(cpiArr);
-    if(last==null) return null;
-    // find matching 12 months earlier by index (assumes monthly series)
-    // use last index and last-12 within filtered array
-    let idx = cpiArr.length-1;
-    while(idx>=0 && !isFinite(Number(cpiArr[idx].value))) idx--;
-    if(idx-12 < 0) return null;
-    const prev = Number(cpiArr[idx-12].value);
-    if(!isFinite(prev) || prev===0) return null;
-    return (last - prev)/prev*100;
-  }
-  function set(id, txt){
-    const el = document.getElementById(id);
-    if(el) el.textContent = txt;
-  }
-
-  async function run(){
-    try{
-      const cache = await loadCache();
-      const cpiArr = normalizeSeries(cache, 'CPIAUCSL');
-      const unArr = normalizeSeries(cache, 'UNRATE');
-      const tenArr = normalizeSeries(cache, 'DGS10');
-      const hsArr = normalizeSeries(cache, 'HOUST');
-
-      const cpi = cpiYoY(cpiArr);
-      const un = latest(unArr);
-      const ten = latest(tenArr);
-      const hs = latest(hsArr);
-
-      set('statCpi', cpi==null ? '—' : cpi.toFixed(1)+'%');
-      set('statUnemp', un==null ? '—' : un.toFixed(1)+'%');
-      set('stat10y', ten==null ? '—' : ten.toFixed(2)+'%');
-      set('statStarts', hs==null ? '—' : Math.round(hs).toLocaleString());
-    }catch(e){
-      console.warn('[fred-cache-v7] KPI update failed', e);
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', run);
-  else run();
-})();
-</script>
 </body>
 </html>
