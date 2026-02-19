@@ -11,10 +11,10 @@
 
 :root {
     /* Color Palette */
-    --bg-primary: #1a1714;
-    --bg-secondary: #2a2520;
-    --text-primary: #e8dcc4;
-    --text-secondary: rgba(232, 220, 196, 0.8);
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --text-primary: #111111;
+    --text-secondary: #333333;
     --accent-gold: #d4a574;
     --accent-gold-hover: #c49563;
     --border-color: #3a3530;
