@@ -18,6 +18,8 @@
 
   <!-- Chart.js for existing canvases -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script defer src="js/navigation.js"></script>
+  <link rel="stylesheet" href="css/site-theme.css"/>
 
   
 
@@ -433,6 +435,55 @@ h3 { font-size: 1.05rem; font-weight: 700; }
 </table>
 </div>
 </div>
+<h2>Proposition 123 Commitments</h2>
+<div class="chart-card" style="margin: 2rem 0;">
+<div class="chart-header">
+<h3 class="chart-title">Jurisdictions Committed to Proposition 123</h3>
+<p class="chart-subtitle">Local governments that have accepted Prop 123 funding and their required affordable housing commitments</p>
+</div>
+<div class="data-table">
+<table>
+<thead>
+<tr>
+<th>Jurisdiction</th>
+<th>Type</th>
+<th>Required Commitment</th>
+<th>AMI Target</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><strong>Denver</strong></td><td>City/County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Aurora</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Colorado Springs</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Fort Collins</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Lakewood</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Arvada</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Westminster</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Longmont</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Loveland</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Greeley</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Broomfield</strong></td><td>City/County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Boulder</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Thornton</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Pueblo</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Grand Junction</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Englewood</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Centennial</strong></td><td>City</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Adams County</strong></td><td>County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Arapahoe County</strong></td><td>County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Jefferson County</strong></td><td>County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Larimer County</strong></td><td>County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+<tr><td><strong>Weld County</strong></td><td>County</td><td>3% annual increase in affordable units</td><td>≤60% AMI</td></tr>
+</tbody>
+</table>
+</div>
+<div style="margin-top: 1rem; padding: 1rem; background: rgba(243, 156, 18, 0.1); border-radius: 4px; border-left: 3px solid var(--warn);">
+<p style="font-size: 0.875rem; margin: 0; line-height: 1.6;">
+<strong>Note:</strong> Proposition 123, passed by Colorado voters in November 2022, requires participating jurisdictions to commit to increasing their affordable housing stock by 3% annually (or maintain existing stock if already above threshold). Jurisdictions must adopt pro-housing land use policies to access the state funding dedicated under the measure. The list above reflects committed jurisdictions as reported by the Colorado Department of Local Affairs (DOLA). Verify current commitment status with DOLA for the most up-to-date information.
+</p>
+</div>
+</div>
+
 <h2>Multifamily Concessions Analysis</h2>
 <div style="background: rgba(192, 57, 43, 0.05); padding: 2rem; border-left: 4px solid var(--color-error); border-radius: 4px; margin: 2rem 0;">
 <h3 style="color: var(--color-error); margin-bottom: 1rem;">Critical Market Alert: Record Concessions</h3>
@@ -1407,10 +1458,10 @@ h3 { font-size: 1.05rem; font-weight: 700; }
         type: "line",
         data: {
           labels: ["2022","2023","2024","2025"],
-          datasets: [{ label:"Avg monthly concession ($)", data:[45, 65, 110, 169], tension:.35 }]
+          datasets: [{ label:"Avg monthly concession ($)", data:[45, 65, 110, 169], tension:.35, borderColor:"#f87171", backgroundColor:"rgba(248,113,113,0.15)", borderWidth:2, fill:true }]
         },
         options: { responsive:true, maintainAspectRatio:false, plugins: { legend: { labels: { color: "rgba(255,255,255,.75)" } } },
-                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" } } } }
+                  scales: { x: { ticks: { color:"rgba(255,255,255,.75)" } }, y: { ticks: { color:"rgba(255,255,255,.75)" }, beginAtZero:true } } }
       });
       safeChart("foreclosure-chart", {
         type: "line",

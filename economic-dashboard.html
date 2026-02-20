@@ -34,29 +34,39 @@
 </div>
 </div>
 <div class="grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:14px;">
-<div class="card stat">
-<p class="num" id="statCpi">—</p>
-<p class="lbl">Inflation (CPI YoY)</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/CPIAUCSL" rel="noopener" target="_blank">Source: FRED (CPIAUCSL)</a></p></div>
-<div class="card stat">
-<p class="num" id="statUnemp">—</p>
-<p class="lbl">Unemployment rate</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/UNRATE" rel="noopener" target="_blank">Source: FRED (UNRATE)</a></p></div>
-<div class="card stat">
-<p class="num" id="stat10y">—</p>
-<p class="lbl">10-Year Treasury</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">Source: FRED (DGS10)</a></p></div>
-<div class="card stat">
-<p class="num" id="statStarts">—</p>
-<p class="lbl">Housing starts (SAAR)</p>
-<p class="src small"><a href="https://fred.stlouisfed.org/series/HOUST" rel="noopener" target="_blank">Source: FRED (HOUST)</a></p></div>
+<div class="card census-construction-card" style="padding:var(--sp3);">
+<p class="num" id="statCpi" style="font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1.1;margin:0 0 4px;">—</p>
+<p class="lbl" style="color:var(--muted);font-size:var(--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">Inflation (CPI YoY)</p>
+<p class="census-date"><a href="https://fred.stlouisfed.org/series/CPIAUCSL" rel="noopener" target="_blank" style="color:var(--faint);font-size:0.72rem;text-decoration:none;">Source: FRED (CPIAUCSL)</a></p>
+</div>
+<div class="card census-construction-card" style="padding:var(--sp3);">
+<p class="num" id="statUnemp" style="font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1.1;margin:0 0 4px;">—</p>
+<p class="lbl" style="color:var(--muted);font-size:var(--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">Unemployment Rate</p>
+<p class="census-date"><a href="https://fred.stlouisfed.org/series/UNRATE" rel="noopener" target="_blank" style="color:var(--faint);font-size:0.72rem;text-decoration:none;">Source: FRED (UNRATE)</a></p>
+</div>
+<div class="card census-construction-card" style="padding:var(--sp3);">
+<p class="num" id="stat10y" style="font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1.1;margin:0 0 4px;">—</p>
+<p class="lbl" style="color:var(--muted);font-size:var(--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">10-Year Treasury</p>
+<p class="census-date"><a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank" style="color:var(--faint);font-size:0.72rem;text-decoration:none;">Source: FRED (DGS10)</a></p>
+</div>
+<div class="card census-construction-card" style="padding:var(--sp3);">
+<p class="num" id="statStarts" style="font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1.1;margin:0 0 4px;">—</p>
+<p class="lbl" style="color:var(--muted);font-size:var(--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">Housing Starts (SAAR)</p>
+<p class="census-date"><a href="https://fred.stlouisfed.org/series/HOUST" rel="noopener" target="_blank" style="color:var(--faint);font-size:0.72rem;text-decoration:none;">Source: FRED (HOUST)</a></p>
+</div>
 </div>
 <p class="note">
         Data source: <a href="https://fred.stlouisfed.org" rel="noopener" target="_blank">FRED</a>, Federal Reserve Bank of St. Louis.
         If charts don’t load, confirm your key is valid and check browser console for errors.
       </p>
 </section><section id="census-stats" style="margin:18px 0; padding:18px;">
-<h2>Census snapshot</h2>
+<div class="census-construction-header">
+  <span class="census-construction-title">Housing Construction Activity</span>
+  <span class="census-construction-note">National · Census Bureau via FRED · Most recent monthly data</span>
+</div>
+<div class="census-grid" id="census-construction"></div>
+
+<h2>Census Snapshot</h2>
 <div class="census-controls">
   <label>Geography<select id="censusLevel">
     <option value="national" selected>National (U.S.)</option>
@@ -70,11 +80,6 @@
 </div>
 <div class="census-grid"></div>
 
-<div class="census-construction-header">
-  <span class="census-construction-title">Housing Construction Activity</span>
-  <span class="census-construction-note">National · Census Bureau via FRED · Most recent monthly data</span>
-</div>
-<div class="census-grid" id="census-construction"></div>
 </section>
 <!-- Collapsible sections (Nixvir-like: metric cards with inline charts) -->
 <details class="card" open="">
