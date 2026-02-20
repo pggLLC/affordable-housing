@@ -428,27 +428,51 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
           <span>${b.label}</span>
         </div>
       `).join('');
+
+      const hasFilter = els.region.value !== 'all' || els.state.value !== 'all' || els.search.value.trim();
+      const notSelectedRow = hasFilter ? `
+        <div class="legend-item" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
+          <span class="legend-color" style="background:rgba(120,120,130,0.35); border-style:dashed;"></span>
+          <span style="color:var(--faint)">Not selected</span>
+        </div>` : '';
+
       els.legend.innerHTML = `
         <div class="legend-title">Map Legend (Per-capita intensity)</div>
         ${rows}
+        ${notSelectedRow}
       `;
     }
 
     function computeBins(values){
-      const v = values.filter(x => isFinite(x)).sort((a,b)=>a-b);
+      const v = values.filter(x => isFinite(x) && x >= 0).sort((a,b)=>a-b);
       if (!v.length){
         return { scale: ()=>'#444', bins: [{color:'#444', label:'No data'}] };
       }
-      const q = (p) => v[Math.floor((v.length-1)*p)];
-      const cuts = [q(0), q(0.2), q(0.4), q(0.6), q(0.8), q(1)];
-      const color = d3.scaleSequential(d3.interpolateBlues).domain([cuts[0], cuts[5]]);
 
-      const bins = [];
-      for (let i=0;i<5;i++){
-        const lo = cuts[i], hi = cuts[i+1];
-        bins.push({ color: color((lo+hi)/2), label: `$${fmtNum(lo,2)} – $${fmtNum(hi,2)}` });
-      }
-      return { scale: color, bins };
+      // Use 5 quantile thresholds so every state in a band gets the exact
+      // same discrete colour shown in the legend swatch.
+      const N = 5;
+      const q = (p) => v[Math.min(v.length - 1, Math.floor((v.length) * p))];
+      const thresholds = [];
+      for (let i = 1; i < N; i++) thresholds.push(q(i / N));
+
+      // Five evenly-spaced Blues palette stops (light → dark)
+      const palette = ['#c6dbef','#9ecae1','#6baed6','#3182bd','#08519c'];
+
+      const scale = d3.scaleThreshold()
+        .domain(thresholds)
+        .range(palette);
+
+      // Build legend bins: show the actual [lo, hi) range for each band
+      const cuts = [v[0], ...thresholds, v[v.length - 1]];
+      const bins = palette.map((color, i) => ({
+        color,
+        label: i < N - 1
+          ? `$${fmtNum(cuts[i], 2)} – $${fmtNum(cuts[i + 1], 2)}`
+          : `$${fmtNum(cuts[i], 2)}+`
+      }));
+
+      return { scale, bins };
     }
 
     function updateMap(dataset){
