@@ -117,41 +117,59 @@ body[data-page="insights.html"] a[href="colorado-deep-dive.html"]{
   font-size: .95rem !important;
 }
 
-/* ── 1. Wire up missing color variables ──────────────────────────
-   insights.html only loads site-theme.css, not styles.css,
-   so --color-success/warning/info/primary-dark are undefined.
-   Map them to the tokens that DO exist in site-theme.css.        */
+/* ── 1. Color variable definitions ──────────────────────────────
+   Use hardcoded values (not variable chains) so these work in
+   both light and dark mode regardless of what --good/--warn
+   resolve to in each theme.                                       */
 body[data-page="insights.html"] {
-  --color-success:      var(--good);
-  --color-warning:      var(--warn);
-  --color-info:         var(--info);
+  --color-success:      #059669;
+  --color-warning:      #d97706;
+  --color-info:         #2563eb;
+  --color-error:        #dc2626;
   --color-primary-dark: var(--text);
 }
 
-/* ── 2. Featured Analysis badge ─────────────────────────────────
-   --color-accent = --accent2 = #e8891a light / #fbbf24 dark.
-   White on bright yellow (dark mode) is illegible → use dark text. */
+/* ── 2. All inline-styled badge divs ────────────────────────────
+   Every badge uses  background: var(--color-*)  with a hardcoded
+   inline  color:white.  In dark mode the variables resolve to
+   pastel tints (#34d399 mint, #60a5fa sky-blue, #fbbf24 yellow)
+   making white text illegible.  Override ALL badge backgrounds and
+   text colours here, scoped to this page.                         */
+
+/* Generic: any small uppercase pill-style div inside the page */
+body[data-page="insights.html"] [style*="text-transform: uppercase"][style*="background: var(--color-"] {
+  color: #fff !important;
+}
+
+/* Featured Analysis badge (class-based from prior fix) */
 body[data-page="insights.html"] .featured-badge {
-  color: var(--text) !important;
-  background: var(--color-accent) !important;
+  background: #d97706 !important;   /* amber — readable in light+dark */
+  color: #fff !important;
 }
 
 /* ── 3. "View Full Analysis →" CTA ─────────────────────────────
-   site-theme.css has  a { color: var(--link) !important }  which
-   overrides the inline color:white on the <a> tag. Beat it here. */
+   site-theme.css:  a { color: var(--link) !important }  overrides
+   the inline color:white. Must beat it with !important here.      */
 body[data-page="insights.html"] a[href="colorado-deep-dive.html"] {
   color: #fff !important;
   text-decoration: none !important;
-  background: var(--color-primary) !important;
+  background: var(--accent, #0ea5a0) !important;
 }
 body[data-page="insights.html"] a[href="colorado-deep-dive.html"]:hover {
   color: #fff !important;
   opacity: 0.88;
 }
 
-/* ── 4. Trend icon boxes ────────────────────────────────────────
-   Use solid fallback colours so the gradient never goes transparent
-   if a variable is still unresolved in an older browser.          */
+/* ── 4. Read full analysis links ────────────────────────────────
+   These are anchors so the global a { color: !important } makes
+   them show as blue link colour instead of styled text.           */
+body[data-page="insights.html"] .feature-card a[href],
+body[data-page="insights.html"] [style*="Read full"] {
+  text-decoration: none !important;
+}
+
+/* ── 5. Trend icon boxes ────────────────────────────────────────
+   Hardcoded solid colours — no variable chains, guaranteed visible */
 body[data-page="insights.html"] .trend-icon {
   display: flex;
   align-items: center;
@@ -163,12 +181,12 @@ body[data-page="insights.html"] .trend-icon {
   flex-shrink: 0;
   font-size: 1.1rem;
   font-family: system-ui, sans-serif;
-  color: #fff;
+  color: #fff !important;
 }
-body[data-page="insights.html"] .trend-icon.up      { background: #059669; }
-body[data-page="insights.html"] .trend-icon.warning { background: #d97706; }
-body[data-page="insights.html"] .trend-icon.info    { background: #2563eb; }
-body[data-page="insights.html"] .trend-icon.accent  { background: #e8891a; }
+body[data-page="insights.html"] .trend-icon.up      { background: #059669 !important; }
+body[data-page="insights.html"] .trend-icon.warning { background: #d97706 !important; }
+body[data-page="insights.html"] .trend-icon.info    { background: #2563eb !important; }
+body[data-page="insights.html"] .trend-icon.accent  { background: #e8891a !important; }
 </style>
 
 
@@ -186,7 +204,7 @@ body[data-page="insights.html"] .trend-icon.accent  { background: #e8891a; }
 </div>
 <!-- Colorado Deep Dive - Featured Section -->
 <div style="margin-bottom: 1.25rem; padding: 0.9rem; background: linear-gradient(135deg, rgba(26, 58, 82, 0.05) 0%, rgba(212, 165, 116, 0.05) 100%); border-radius: 12px; border: 2px solid var(--color-accent);">
-<div class="featured-badge" style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-accent); border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.75rem;">
+<div class="featured-badge" style="display: inline-block; padding: 0.5rem 1rem; background: #d97706; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.75rem;">
 Featured Analysis
 </div>
 <h2 style="font-size: 0.98rem; margin-bottom: 1rem; color: var(--color-primary);">Colorado Affordable Housing Market Deep Dive</h2>
@@ -223,7 +241,7 @@ View Full Analysis →
 <div class="features-grid" style="display: grid; gap: 0.9rem;">
 <!-- Housing Legislation -->
 <a class="feature-card" href="housing-legislation-2026.html" style="display: block; text-decoration: none; color: inherit;">
-<div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-success); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
+<div style="display: inline-block; padding: 0.5rem 1rem; background: #059669; color: #fff; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
 Breaking Legislative News
 </div>
 <h3 class="feature-title" style="font-size: 0.92rem; margin-bottom: 1rem;">Housing for the 21st Century Act Passes House 390-9</h3>
@@ -237,7 +255,7 @@ Published: February 13, 2026 • 15 min read • <em>Sources: Congress.gov, BLS,
 </a>
 <!-- Pricing Article -->
 <a class="feature-card" href="article-pricing.html" style="display: block; text-decoration: none; color: inherit;">
-<div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-error); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
+<div style="display: inline-block; padding: 0.5rem 1rem; background: #dc2626; color: #fff; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
 Q1 2026 Report
 </div>
 <h3 class="feature-title" style="font-size: 0.92rem; margin-bottom: 1rem;">Tax Credit Pricing Reaches Historic Lows</h3>
@@ -251,7 +269,7 @@ Published: February 8, 2026 • 6 min read • <em>Sources: Novogradac, HUD LIHT
 </a>
 <!-- Colorado Market -->
 <a class="feature-card" href="colorado-market.html" style="display: block; text-decoration: none; color: inherit;">
-<div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-info); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
+<div style="display: inline-block; padding: 0.5rem 1rem; background: #2563eb; color: #fff; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
 Regional Focus
 </div>
 <h3 class="feature-title" style="font-size: 0.92rem; margin-bottom: 1rem;">Colorado Market Analysis &amp; Forecast</h3>
@@ -265,7 +283,7 @@ Published: February 10, 2026 • 8 min read • <em>Sources: CHFA, Census Bureau
 </a>
 <!-- CRA Expansion -->
 <a class="feature-card" href="cra-expansion-analysis.html" style="display: block; text-decoration: none; color: inherit;">
-<div style="display: inline-block; padding: 0.5rem 1rem; background: var(--color-success); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
+<div style="display: inline-block; padding: 0.5rem 1rem; background: #059669; color: #fff; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem;">
 Policy Analysis
 </div>
 <h3 class="feature-title" style="font-size: 0.92rem; margin-bottom: 1rem;">CRA Expansion Impact: Pricing Forecasts</h3>
