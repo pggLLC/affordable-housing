@@ -67,10 +67,10 @@
 <div class="metric-grid" id="sec-construction"></div>
 </div>
 </details>
-<details class="card">
+<details class="card" open="">
 <summary>
         Housing Market
-        <span class="pill small">6 indicators</span>
+        <span class="pill small">9 indicators</span>
 </summary>
 <div class="section-body">
 <p class="section-desc">Starts, permits, prices, and affordability signals that shape pipeline and underwriting assumptions.</p>
@@ -261,6 +261,18 @@ function getKey(){ return CONFIG_KEY || ""; }
   }
 
   const charts = new Map();
+
+  // Re-render charts when a collapsed <details> section is opened,
+  // because Chart.js cannot measure a hidden (zero-size) canvas.
+  document.querySelectorAll("details").forEach(det => {
+    det.addEventListener("toggle", () => {
+      if (!det.open) return;
+      det.querySelectorAll("canvas").forEach(canvas => {
+        const ch = charts.get(canvas.id);
+        if (ch) { ch.resize(); ch.update(); }
+      });
+    });
+  });
 
   function renderChart(canvas, labels, values){
     const ctx = canvas.getContext("2d");
