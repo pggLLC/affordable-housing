@@ -55,7 +55,27 @@
         Data source: <a href="https://fred.stlouisfed.org" rel="noopener" target="_blank">FRED</a>, Federal Reserve Bank of St. Louis.
         If charts don’t load, confirm your key is valid and check browser console for errors.
       </p>
-</section><section id="census-stats" style="margin:18px 0; padding:18px;"><h2>Census snapshot</h2><div class="census-controls"><label>Geography<select id="censusLevel"><option value="national" selected>National (U.S.)</option><option value="state">State</option><option value="county">County</option><option value="place">Place</option></select></label><label id="censusStateWrap" style="display:none;">State<select id="censusState"></select></label><label id="censusGeoWrap" style="display:none;">Select<select id="censusGeo"></select></label><div class="census-vintage" data-census-vintage="">Loading…</div></div><div class="census-grid"></div></section>
+</section><section id="census-stats" style="margin:18px 0; padding:18px;">
+<h2>Census snapshot</h2>
+<div class="census-controls">
+  <label>Geography<select id="censusLevel">
+    <option value="national" selected>National (U.S.)</option>
+    <option value="state">State</option>
+    <option value="county">County</option>
+    <option value="place">Place</option>
+  </select></label>
+  <label id="censusStateWrap" style="display:none;">State<select id="censusState"></select></label>
+  <label id="censusGeoWrap" style="display:none;">Select<select id="censusGeo"></select></label>
+  <div class="census-vintage" data-census-vintage="">Loading…</div>
+</div>
+<div class="census-grid"></div>
+
+<div class="census-construction-header">
+  <span class="census-construction-title">Housing Construction Activity</span>
+  <span class="census-construction-note">National · Census Bureau via FRED · Most recent monthly data</span>
+</div>
+<div class="census-grid" id="census-construction"></div>
+</section>
 <!-- Collapsible sections (Nixvir-like: metric cards with inline charts) -->
 <details class="card" open="">
 <summary>
@@ -126,6 +146,7 @@
     {section:"housing", id:"HOUST5F",     title:"Multifamily Starts (5+ units)", units:"thousands", fmt:"int"},
     {section:"housing", id:"PERMIT5",     title:"Multifamily Permits (5+ units)", units:"thousands", fmt:"int"},
     {section:"housing", id:"UNDCONTSA",   title:"Units Under Construction", units:"thousands", fmt:"int"},
+    {section:"housing", id:"COMPUTSA",    title:"Multifamily Completions (5+ units)", units:"thousands", fmt:"int"},
 
     // Finance (6)
     {section:"finance", id:"DGS10", title:"10-Year Treasury Yield", units:"%", fmt:"pct"},
