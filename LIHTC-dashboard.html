@@ -302,7 +302,8 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
     }
 
     function getAllStates(dataset){
-      return dataset?.states ? Object.values(dataset.states) : [];
+      if (!dataset?.states) return [];
+      return Object.entries(dataset.states).map(([abbr, s]) => ({ abbr, ...s }));
     }
 
     function getRegionOfState(abbr){
@@ -687,7 +688,7 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
         updateMap(dataset);
       };
 
-      // Events — use wrapper lambdas so they always call the *current* rerender closure
+      // Events
       els.year.addEventListener('change', () => {
         // clear filters to avoid empty due to alias mismatch
         els.region.value = 'all';
@@ -718,7 +719,8 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
         clearTimeout(window.__rTimer);
         window.__rTimer = setTimeout(() => {
           ensureMap();
-          rerender();
+          const dataset = getDatasetForYear(els.year.value);
+          updateMap(dataset);
         }, 140);
       });
 
