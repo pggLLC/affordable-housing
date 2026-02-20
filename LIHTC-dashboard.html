@@ -687,7 +687,7 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
         updateMap(dataset);
       };
 
-      // Events
+      // Events — use wrapper lambdas so they always call the *current* rerender closure
       els.year.addEventListener('change', () => {
         // clear filters to avoid empty due to alias mismatch
         els.region.value = 'all';
@@ -695,7 +695,7 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
         els.search.value = '';
         rerender();
       });
-      els.mode.addEventListener('change', rerender);
+      els.mode.addEventListener('change', () => rerender());
       els.region.addEventListener('change', () => {
         // reset state selection when region changes for clarity
         els.state.value = 'all';
@@ -711,15 +711,14 @@ th.sort-desc::after { content: "  ▼"; color: var(--faint); }
         // if searching, reset explicit state
         els.state.value = 'all';
         clearTimeout(window.__qTimer);
-        window.__qTimer = setTimeout(rerender, 160);
+        window.__qTimer = setTimeout(() => rerender(), 160);
       });
 
       window.addEventListener('resize', () => {
         clearTimeout(window.__rTimer);
         window.__rTimer = setTimeout(() => {
           ensureMap();
-          const dataset = getDatasetForYear(els.year.value);
-          updateMap(dataset);
+          rerender();
         }, 140);
       });
 
