@@ -361,6 +361,8 @@ details[open] > summary::after { transform: rotate(90deg); }
 .census-vintage { color: var(--muted) !important; font-weight: 700; }
 .census-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-top: 12px; }
 .census-grid .card { padding: var(--sp3); }
+.census-grid .card .num { font-size: 1.5rem; font-weight: 800; color: var(--text) !important; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 4px; }
+.census-grid .card .lbl { color: var(--muted) !important; font-size: var(--small); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
 
 /* ================================================================
    18. LEAFLET
