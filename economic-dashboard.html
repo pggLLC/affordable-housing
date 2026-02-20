@@ -322,28 +322,27 @@ function getKey(){ return CONFIG_KEY || ""; }
     }
 
     // Load headline stats (CPI YoY, UNRATE, DGS10, HOUST)
-    // CPI YoY uses CPIAUCSL % change YoY: compute from CPI level series.
-    try{
-      const [cpi, unemp, teny, starts] = await Promise.all([
-        fetchFRED("CPIAUCSL", apiKey, 90),
-        fetchFRED("UNRATE", apiKey, 90),
-        fetchFRED("DGS10", apiKey, 90),
-        fetchFRED("HOUST", apiKey, 90),
-      ]);
+    // Each stat loads independently so one failure cannot block the others.
+    await Promise.allSettled([
+      fetchFRED("CPIAUCSL", apiKey, 90).then(cpi => {
+        const last = cpi[cpi.length-1];
+        const prev = cpi[Math.max(0, cpi.length-13)];
+        const yoy = (last.value/prev.value - 1) * 100;
+        els.statCpi.textContent = yoy.toFixed(1) + "%";
+      }).catch(e => { console.warn("Headline CPI failed:", e); els.statCpi.textContent = "—"; }),
 
-      // CPI YoY
-      const last = cpi[cpi.length-1];
-      const prev = cpi[Math.max(0, cpi.length-13)];
-      const yoy = (last.value/prev.value - 1) * 100;
-      els.statCpi.textContent = yoy.toFixed(1) + "%";
+      fetchFRED("UNRATE", apiKey, 90).then(unemp => {
+        els.statUnemp.textContent = fmtValue(unemp[unemp.length-1].value, "pct");
+      }).catch(e => { console.warn("Headline UNRATE failed:", e); els.statUnemp.textContent = "—"; }),
 
-      els.statUnemp.textContent = fmtValue(unemp[unemp.length-1].value, "pct");
-      els.stat10y.textContent = fmtValue(teny[teny.length-1].value, "pct");
-      els.statStarts.textContent = (Math.round(starts[starts.length-1].value) * 1000).toLocaleString() + " /yr";
-    } catch(e){
-      // don't hard fail the whole page
-      console.warn("Headline stats failed:", e);
-    }
+      fetchFRED("DGS10", apiKey, 90).then(teny => {
+        els.stat10y.textContent = fmtValue(teny[teny.length-1].value, "pct");
+      }).catch(e => { console.warn("Headline DGS10 failed:", e); els.stat10y.textContent = "—"; }),
+
+      fetchFRED("HOUST", apiKey, 90).then(starts => {
+        els.statStarts.textContent = (Math.round(starts[starts.length-1].value) * 1000).toLocaleString() + " /yr";
+      }).catch(e => { console.warn("Headline HOUST failed:", e); els.statStarts.textContent = "—"; }),
+    ]);
 
     // Load all indicator series and render
     // Show when the cached FRED data was last fetched by the GitHub Action
