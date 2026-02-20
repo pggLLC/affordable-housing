@@ -116,6 +116,59 @@ body[data-page="insights.html"] a[href="colorado-deep-dive.html"]{
   padding: .75rem 1.1rem !important;
   font-size: .95rem !important;
 }
+
+/* ── 1. Wire up missing color variables ──────────────────────────
+   insights.html only loads site-theme.css, not styles.css,
+   so --color-success/warning/info/primary-dark are undefined.
+   Map them to the tokens that DO exist in site-theme.css.        */
+body[data-page="insights.html"] {
+  --color-success:      var(--good);
+  --color-warning:      var(--warn);
+  --color-info:         var(--info);
+  --color-primary-dark: var(--text);
+}
+
+/* ── 2. Featured Analysis badge ─────────────────────────────────
+   --color-accent = --accent2 = #e8891a light / #fbbf24 dark.
+   White on bright yellow (dark mode) is illegible → use dark text. */
+body[data-page="insights.html"] .featured-badge {
+  color: var(--text) !important;
+  background: var(--color-accent) !important;
+}
+
+/* ── 3. "View Full Analysis →" CTA ─────────────────────────────
+   site-theme.css has  a { color: var(--link) !important }  which
+   overrides the inline color:white on the <a> tag. Beat it here. */
+body[data-page="insights.html"] a[href="colorado-deep-dive.html"] {
+  color: #fff !important;
+  text-decoration: none !important;
+  background: var(--color-primary) !important;
+}
+body[data-page="insights.html"] a[href="colorado-deep-dive.html"]:hover {
+  color: #fff !important;
+  opacity: 0.88;
+}
+
+/* ── 4. Trend icon boxes ────────────────────────────────────────
+   Use solid fallback colours so the gradient never goes transparent
+   if a variable is still unresolved in an older browser.          */
+body[data-page="insights.html"] .trend-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  font-family: system-ui, sans-serif;
+  color: #fff;
+}
+body[data-page="insights.html"] .trend-icon.up      { background: #059669; }
+body[data-page="insights.html"] .trend-icon.warning { background: #d97706; }
+body[data-page="insights.html"] .trend-icon.info    { background: #2563eb; }
+body[data-page="insights.html"] .trend-icon.accent  { background: #e8891a; }
 </style>
 
 
@@ -237,9 +290,7 @@ Published: February 13, 2026 • 12 min read • <em>Sources: FFIEC, NCUA, Novog
 <!-- Trend 1 -->
 <div class="trend-item">
 <div style="display: flex; align-items: start; gap: 0.9rem;">
-<div style="min-width: 44px; height: 44px; background: linear-gradient(135deg, var(--color-success), #2ecc71); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: 700; flex-shrink: 0; font-family: system-ui, sans-serif;">
-↑
-</div>
+<div class="trend-icon up">↑</div>
 <div style="flex: 1;">
 <h4 style="font-size: 0.98rem; margin-bottom: 1rem; color: var(--color-primary-dark);">Rising Investor Demand</h4>
 <p style="color: var(--color-text-light); line-height: 1.5; font-size: 0.92rem;">
@@ -254,9 +305,7 @@ Source: Novogradac investor surveys, Q4 2025
 <!-- Trend 2 -->
 <div class="trend-item">
 <div style="display: flex; align-items: start; gap: 0.9rem;">
-<div style="min-width: 44px; height: 44px; background: linear-gradient(135deg, var(--color-warning), #f5b041); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: 700; flex-shrink: 0; font-family: system-ui, sans-serif;">
-⚠
-</div>
+<div class="trend-icon warning">⚠</div>
 <div style="flex: 1;">
 <h4 style="font-size: 0.98rem; margin-bottom: 1rem; color: var(--color-primary-dark);">Construction Cost Pressures</h4>
 <p style="color: var(--color-text-light); line-height: 1.5; font-size: 0.92rem;">
@@ -271,9 +320,7 @@ Source: AGC Construction Cost Reports, BLS Producer Price Index
 <!-- Trend 3 -->
 <div class="trend-item">
 <div style="display: flex; align-items: start; gap: 0.9rem;">
-<div style="min-width: 44px; height: 44px; background: linear-gradient(135deg, var(--color-info), #5dade2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: 700; flex-shrink: 0; font-family: system-ui, sans-serif;">
-✦
-</div>
+<div class="trend-icon info">✦</div>
 <div style="flex: 1;">
 <h4 style="font-size: 0.98rem; margin-bottom: 1rem; color: var(--color-primary-dark);">QAP Evolution</h4>
 <p style="color: var(--color-text-light); line-height: 1.5; font-size: 0.92rem;">
@@ -288,9 +335,7 @@ Source: NCSHA QAP analysis, State HFA policy announcements
 <!-- Trend 4 -->
 <div class="trend-item">
 <div style="display: flex; align-items: start; gap: 0.9rem;">
-<div style="min-width: 44px; height: 44px; background: linear-gradient(135deg, var(--color-accent), #d4a574); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: 700; flex-shrink: 0; font-family: system-ui, sans-serif;">
-◊
-</div>
+<div class="trend-icon accent">◆</div>
 <div style="flex: 1;">
 <h4 style="font-size: 0.98rem; margin-bottom: 1rem; color: var(--color-primary-dark);">Mixed-Income Models Gain Traction</h4>
 <p style="color: var(--color-text-light); line-height: 1.5; font-size: 0.92rem;">
