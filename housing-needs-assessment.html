@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Colorado Housing Needs Assessment - LIHTC Analytics Hub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+
+  <style>
+/* ── Core design tokens ── */
+:root {
+  --bg: #0d1117; --bg2: #111820; --card: #151e28;
+  --text: #e2e8f0; --muted: #7a91aa; --faint: #4a6070;
+  --border: rgba(255,255,255,0.09); --accent: #5fa8ff;
+  --good: #34d399; --warn: #fbbf24; --bad: #f87171;
+  --radius: 8px; --radius-lg: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.45);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 15px; line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--accent); }
+
+.page-container { max-width: 1240px; margin: 0 auto; padding: 2rem 1.5rem 3rem; }
+
+h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 0.5rem; }
+h2 { font-size: 1.2rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
+p  { color: var(--muted); margin-bottom: 1rem; }
+
+.pill {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent); font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Map card ── */
+.map-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.map-card-header {
+  padding: 1rem 1.25rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.map-card-header h2 { margin: 0 0 0.3rem; }
+.map-card-header p { margin: 0; font-size: 0.85rem; }
+
+#hnaMap {
+  height: 72vh;
+  min-height: 500px;
+  width: 100%;
+}
+
+.map-controls {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  align-items: center; padding: 0.65rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+.map-controls label {
+  display: flex; gap: 0.4rem; align-items: center;
+  color: var(--muted); font-size: 0.83rem; font-weight: 600;
+  cursor: pointer; padding: 4px 10px;
+  border-radius: 999px; border: 1px solid var(--border);
+  background: var(--card); transition: background 0.15s, border-color 0.15s;
+}
+.map-controls label:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--text);
+}
+.map-controls input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+#map-status { font-size: 0.82rem; margin-left: auto; }
+
+/* ── Map legend ── */
+.map-legend {
+  background: color-mix(in srgb, var(--card) 92%, transparent) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(8px);
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 12px; line-height: 1.3;
+}
+.map-legend .row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.dot   { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.swatch { width: 14px; height: 10px; border-radius: 3px; display: inline-block; border: 1px solid var(--border); flex-shrink: 0; }
+
+/* Leaflet overrides */
+.leaflet-tooltip {
+  background: var(--card) !important; color: var(--text) !important;
+  border: 1px solid var(--border) !important; box-shadow: var(--shadow) !important;
+  border-radius: 6px; font-size: 12px;
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: var(--card) !important; color: var(--text) !important;
+}
+
+/* ── KPI grid ── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: .75rem; margin: .25rem 0 1.5rem;
+}
+@media (max-width: 700px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
+.kpi-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: .85rem .9rem;
+}
+.kpi-value { font-size: 1.15rem; font-weight: 750; line-height: 1.1; margin-bottom: .25rem; }
+.kpi-label { font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.kpi-source { font-size: .7rem; color: var(--faint); margin-top: .3rem; }
+  </style>
+</head>
+
+<body data-page="housing-needs-assessment.html">
+  <div id="site-header"></div>
+
+  <div class="page-container">
+    <div class="pill">Housing Needs Assessment</div>
+    <h1>Colorado Housing Needs Assessment</h1>
+    <p>
+      Interactive map of LIHTC-funded affordable housing projects across Colorado,
+      overlaid with Qualified Census Tracts (QCT) and Difficult Development Areas (DDA)
+      to visualize where affordable housing is most critically needed.
+    </p>
+
+    <!-- KPI summary -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-label">LIHTC Projects</div>
+        <div class="kpi-source">HUD / CHFA Database</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-units">—</div>
+        <div class="kpi-label">Affordable Units</div>
+        <div class="kpi-source">Low-income restricted</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-qct">—</div>
+        <div class="kpi-label">QCT Projects</div>
+        <div class="kpi-source">130% basis boost eligible</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value" id="kpi-dda">—</div>
+        <div class="kpi-label">DDA Projects</div>
+        <div class="kpi-source">130% basis boost eligible</div>
+      </div>
+    </div>
+
+    <!-- Map card -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <h2>LIHTC Projects &amp; Opportunity Zones</h2>
+        <p>Use the checkboxes below to toggle QCT and DDA overlays. Click a project marker for details.</p>
+      </div>
+      <div id="hnaMap"></div>
+      <div class="map-controls">
+        <label><input type="checkbox" id="layerQCT"> QCT 2026</label>
+        <label><input type="checkbox" id="layerDDA"> DDA 2026</label>
+        <span id="map-status" style="color:var(--muted);font-size:.82rem;">Loading…</span>
+      </div>
+    </div>
+
+    <p style="font-size:0.8rem;color:var(--faint);">
+      Sources: HUD LIHTC Database, CHFA, HUD 2026 QCT/DDA Designations.
+      Map data: © OpenStreetMap contributors, © CARTO.
+    </p>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script defer src="js/navigation.js"></script>
+  <script>
+/**
+ * housing-needs-assessment.js — Colorado Housing Needs Assessment Leaflet map
+ * Multi-tier data loading with fallback chain.
+ */
+(function () {
+  'use strict';
+
+  function $id(id) { return document.getElementById(id); }
+
+  async function fetchJSON(url, opts) {
+    const res = await fetch(url, opts);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
+    return res.json();
+  }
+
+  async function arcgisQuery(layerUrl, where, outFields) {
+    const PAGE = 1000;
+    let offset = 0;
+    const all = { type: 'FeatureCollection', features: [] };
+    let pages = 0;
+    while (true) {
+      const p = new URLSearchParams({
+        where: where || '1=1', outFields: outFields || '*',
+        returnGeometry: 'true', f: 'geojson',
+        resultRecordCount: String(PAGE), resultOffset: String(offset),
+        outSR: '4326', returnExceededLimitFeatures: 'true'
+      });
+      let gj;
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 12000);
+        gj = await fetchJSON(`${layerUrl}/query?${p}`, { signal: ctrl.signal });
+        clearTimeout(timer);
+      } catch(e) { console.warn('ArcGIS query failed:', layerUrl, e.message); break; }
+      const feats = gj && Array.isArray(gj.features) ? gj.features : [];
+      if (feats.length === 0) break;
+      all.features.push(...feats);
+      const exceeded = !!(gj.exceededTransferLimit || (gj.properties && gj.properties.exceededTransferLimit));
+      if (!exceeded && feats.length < PAGE) break;
+      offset += PAGE; pages++;
+      if (pages > 150) break;
+    }
+    return all;
+  }
+
+  const CHFA_LIHTC_LAYER = 'https://gis.chfainfo.com/arcgis/rest/services/LIHTC/FeatureServer/0';
+  const HUD_LIHTC_LAYER  = 'https://egis.hud.gov/arcgis/rest/services/affht/AffhtMapService/MapServer/30';
+  const QCT_LAYER        = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Qualified_Census_Tracts_2026/FeatureServer/0';
+  const DDA_LAYER        = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Difficult_Development_Areas_2026/FeatureServer/0';
+  const GITHUB_PAGES_BASE = 'https://pggllc.github.io/affordable-housing';
+
+  function styleQCT() { return { color: 'rgba(80,220,160,0.9)', weight: 1.5, fillColor: 'rgba(80,220,160,0.18)', fillOpacity: 1 }; }
+  function styleDDA() { return { color: 'rgba(255,185,60,0.9)',  weight: 1.5, fillColor: 'rgba(255,185,60,0.15)', fillOpacity: 1 }; }
+
+  function setStatus(el, msg, type) {
+    if (!el) return;
+    const c = { ok: 'var(--good)', warn: 'var(--warn)', err: 'var(--bad)', info: 'var(--muted)' };
+    el.textContent = msg; el.style.color = c[type] || 'var(--muted)';
+  }
+
+  /* ── Embedded fallback data ── */
+  const FALLBACK_LIHTC = {"type":"FeatureCollection","features":[
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.9903,39.7392]},"properties":{"PROJECT":"Lincoln Park Apartments","PROJ_CTY":"Denver","PROJ_ST":"CO","N_UNITS":120,"LI_UNITS":120,"YR_PIS":2018,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"Denver"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.9748,39.7519]},"properties":{"PROJECT":"Curtis Park Lofts","PROJ_CTY":"Denver","PROJ_ST":"CO","N_UNITS":72,"LI_UNITS":72,"YR_PIS":2016,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"Denver"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.8851,39.6784]},"properties":{"PROJECT":"Aurora Family Commons","PROJ_CTY":"Aurora","PROJ_ST":"CO","N_UNITS":150,"LI_UNITS":150,"YR_PIS":2021,"CREDIT":"4%","QCT":false,"DDA":true,"CNTY_NAME":"Arapahoe"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-105.2705,40.0150]},"properties":{"PROJECT":"Boulder Commons","PROJ_CTY":"Boulder","PROJ_ST":"CO","N_UNITS":100,"LI_UNITS":100,"YR_PIS":2021,"CREDIT":"9%","QCT":false,"DDA":true,"CNTY_NAME":"Boulder"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.8214,38.8339]},"properties":{"PROJECT":"Springs Family Village","PROJ_CTY":"Colorado Springs","PROJ_ST":"CO","N_UNITS":130,"LI_UNITS":130,"YR_PIS":2018,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"El Paso"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-105.0844,40.5853]},"properties":{"PROJECT":"Fort Collins Commons","PROJ_CTY":"Fort Collins","PROJ_ST":"CO","N_UNITS":104,"LI_UNITS":104,"YR_PIS":2019,"CREDIT":"9%","QCT":false,"DDA":true,"CNTY_NAME":"Larimer"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.6914,40.4233]},"properties":{"PROJECT":"Greeley Flats","PROJ_CTY":"Greeley","PROJ_ST":"CO","N_UNITS":90,"LI_UNITS":90,"YR_PIS":2020,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"Weld"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-104.6091,38.2544]},"properties":{"PROJECT":"Pueblo Senior Manor","PROJ_CTY":"Pueblo","PROJ_ST":"CO","N_UNITS":80,"LI_UNITS":80,"YR_PIS":2017,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"Pueblo"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-108.5506,39.0639]},"properties":{"PROJECT":"Grand Junction Crossroads","PROJ_CTY":"Grand Junction","PROJ_ST":"CO","N_UNITS":85,"LI_UNITS":85,"YR_PIS":2021,"CREDIT":"9%","QCT":true,"DDA":false,"CNTY_NAME":"Mesa"}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[-107.8801,37.2753]},"properties":{"PROJECT":"Durango Commons","PROJ_CTY":"Durango","PROJ_ST":"CO","N_UNITS":62,"LI_UNITS":62,"YR_PIS":2021,"CREDIT":"9%","QCT":false,"DDA":true,"CNTY_NAME":"La Plata"}}
+  ]};
+
+  const FALLBACK_QCT = {"type":"FeatureCollection","features":[
+    {"type":"Feature","properties":{"NAME":"Denver-Five Points QCT","GEOID":"08031007700","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-104.982,39.745],[-104.940,39.745],[-104.940,39.768],[-104.982,39.768],[-104.982,39.745]]]}},
+    {"type":"Feature","properties":{"NAME":"Colorado Springs-Downtown QCT","GEOID":"08041003200","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-104.851,38.820],[-104.800,38.820],[-104.800,38.858],[-104.851,38.858],[-104.851,38.820]]]}},
+    {"type":"Feature","properties":{"NAME":"Pueblo-Downtown QCT","GEOID":"08101000300","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-104.635,38.238],[-104.580,38.238],[-104.580,38.278],[-104.635,38.278],[-104.635,38.238]]]}},
+    {"type":"Feature","properties":{"NAME":"Greeley QCT","GEOID":"08123000500","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-104.730,40.404],[-104.670,40.404],[-104.670,40.440],[-104.730,40.440],[-104.730,40.404]]]}},
+    {"type":"Feature","properties":{"NAME":"Grand Junction QCT","GEOID":"08077000200","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-108.590,39.048],[-108.530,39.048],[-108.530,39.085],[-108.590,39.085],[-108.590,39.048]]]}}
+  ]};
+
+  const FALLBACK_DDA = {"type":"FeatureCollection","features":[
+    {"type":"Feature","properties":{"NAME":"Denver-Aurora Metro DDA","DDATYPE":"Metropolitan","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-105.15,39.55],[-104.67,39.55],[-104.67,39.98],[-105.15,39.98],[-105.15,39.55]]]}},
+    {"type":"Feature","properties":{"NAME":"Eagle County DDA","DDATYPE":"High-Cost Non-Metropolitan","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-107.18,39.44],[-106.29,39.44],[-106.29,39.74],[-107.18,39.74],[-107.18,39.44]]]}},
+    {"type":"Feature","properties":{"NAME":"Summit County DDA","DDATYPE":"High-Cost Non-Metropolitan","STATE":"CO"},"geometry":{"type":"Polygon","coordinates":[[[-106.38,39.38],[-105.73,39.38],[-105.73,39.66],[-106.38,39.66],[-106.38,39.38]]]}}
+  ]};
+
+  async function init() {
+    const mapEl = $id('hnaMap');
+    if (!mapEl || typeof L === 'undefined') {
+      console.error('Leaflet not loaded or #hnaMap missing'); return;
+    }
+    const statusEl = $id('map-status');
+
+    const CO_MAX_BOUNDS = L.latLngBounds([[36.27,-109.96],[41.72,-101.14]]);
+    const map = L.map('hnaMap', {
+      preferCanvas: true,
+      zoomControl: true,
+      minZoom: 6, maxZoom: 14,
+      maxBounds: CO_MAX_BOUNDS,
+      maxBoundsViscosity: 1.0
+    });
+
+    map.createPane('overlayPane2'); map.getPane('overlayPane2').style.zIndex = 410;
+    map.createPane('pointsPane2');  map.getPane('pointsPane2').style.zIndex  = 420;
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    L.tileLayer(
+      prefersDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }
+    ).addTo(map);
+
+    map.fitBounds([[36.99,-109.06],[41.00,-102.04]]);
+
+    /* Legend */
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'map-legend');
+      div.innerHTML = `
+        <div style="font-weight:800;margin-bottom:7px;font-size:13px;">Legend</div>
+        <div class="row"><span class="dot" style="background:#5ec8f8;"></span><span>LIHTC project</span></div>
+        <div class="row"><span class="swatch" style="background:rgba(80,220,160,.25);border-color:rgba(80,220,160,.6)"></span><span>QCT 2026</span></div>
+        <div class="row"><span class="swatch" style="background:rgba(255,185,60,.22);border-color:rgba(255,185,60,.6)"></span><span>DDA 2026</span></div>`;
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+      return div;
+    };
+    legend.addTo(map);
+
+    /* ── Overlay layers ── */
+    let qctLayer = null, ddaLayer = null;
+    let qctLoaded = false, ddaLoaded = false;
+
+    function makeOverlay(gj, styleFn, label) {
+      return L.geoJSON(gj, {
+        pane: 'overlayPane2', style: styleFn,
+        onEachFeature: (f, lyr) => {
+          const p = f.properties || {};
+          const name = p.NAME || p.NAMELSAD || label;
+          const type = p.DDATYPE || p.TRACTTYPE || '';
+          let tip = `<strong>${name}</strong>`;
+          if (type) tip += `<br><em style="opacity:.8;">${type}</em>`;
+          tip += `<br><span style="opacity:.6;font-size:11px;">${label}</span>`;
+          lyr.bindTooltip(tip, { sticky: true, opacity: 0.95, direction: 'top' });
+          lyr.on('mouseover', function() { this.setStyle({ weight: 2.5, fillOpacity: 0.35 }); });
+          lyr.on('mouseout',  function() { this.setStyle(styleFn()); });
+        }
+      });
+    }
+
+    async function tryAPI(url, where) {
+      const filters = [where, "STATE='CO'", "STATEFP='08'", "1=1"];
+      for (const w of filters) {
+        try {
+          const gj = await arcgisQuery(url, w, '*');
+          if (!gj.features.length) continue;
+          let feats = gj.features;
+          if (w === '1=1') {
+            feats = feats.filter(f => {
+              if (!f.geometry) return false;
+              const flat = JSON.stringify(f.geometry.coordinates).match(/-?\d+\.?\d+/g)?.map(Number) || [];
+              for (let i = 0; i < flat.length - 1; i += 2)
+                if (flat[i] > -110 && flat[i] < -102 && flat[i+1] > 36.5 && flat[i+1] < 41.5) return true;
+              return false;
+            });
+          }
+          if (feats.length) return { ...gj, features: feats };
+        } catch(_) {}
+      }
+      throw new Error('API exhausted');
+    }
+
+    async function ensureQCT() {
+      if (qctLoaded) return; qctLoaded = true;
+      // Tier 1: local file
+      try {
+        const gj = await fetchJSON('data/qct-colorado.json');
+        if (gj && gj.features && gj.features.length) {
+          qctLayer = makeOverlay(gj, styleQCT, 'QCT 2026');
+          console.log('✓ QCT: loaded from local data/qct-colorado.json');
+          return;
+        }
+      } catch(e) { console.warn('Local QCT file unavailable:', e.message); }
+      // Tier 2: API
+      try {
+        const gj = await tryAPI(QCT_LAYER, "STATEFP='08'");
+        qctLayer = makeOverlay(gj, styleQCT, 'QCT 2026');
+        console.log('✓ QCT: loaded from API');
+      } catch(_) {
+        // Tier 3: embedded
+        qctLayer = makeOverlay(FALLBACK_QCT, styleQCT, 'QCT 2026');
+        console.warn('QCT: using embedded fallback');
+      }
+    }
+
+    async function ensureDDA() {
+      if (ddaLoaded) return; ddaLoaded = true;
+      // Tier 1: local file
+      try {
+        const gj = await fetchJSON('data/dda-colorado.json');
+        if (gj && gj.features && gj.features.length) {
+          ddaLayer = makeOverlay(gj, styleDDA, 'DDA 2026');
+          console.log('✓ DDA: loaded from local data/dda-colorado.json');
+          return;
+        }
+      } catch(e) { console.warn('Local DDA file unavailable:', e.message); }
+      // Tier 2: API
+      try {
+        const gj = await tryAPI(DDA_LAYER, "STATEFP='08'");
+        ddaLayer = makeOverlay(gj, styleDDA, 'DDA 2026');
+        console.log('✓ DDA: loaded from API');
+      } catch(_) {
+        // Tier 3: embedded
+        ddaLayer = makeOverlay(FALLBACK_DDA, styleDDA, 'DDA 2026');
+        console.warn('DDA: using embedded fallback');
+      }
+    }
+
+    /* ── LIHTC markers (5-tier fallback) ── */
+    async function loadLIHTC() {
+      setStatus(statusEl, 'Loading LIHTC projects…', 'info');
+      let gj = null;
+      // Tier 1: CHFA API
+      try {
+        gj = await arcgisQuery(CHFA_LIHTC_LAYER, "STATE='CO'", '*');
+        if (!gj.features.length) throw new Error('Empty from CHFA');
+        console.log('✓ LIHTC: loaded from CHFA API');
+      } catch(e) { console.warn('CHFA API unavailable:', e.message); gj = null; }
+      // Tier 2: HUD API
+      if (!gj) {
+        try {
+          gj = await arcgisQuery(HUD_LIHTC_LAYER, "(PROJ_ST='CO') OR (STD_ST='CO')", '*');
+          if (!gj.features.length) throw new Error('Empty from HUD');
+          console.log('✓ LIHTC: loaded from HUD API');
+        } catch(e) { console.warn('HUD LIHTC API unavailable:', e.message); gj = null; }
+      }
+      // Tier 3: local file
+      if (!gj) {
+        try {
+          const localGj = await fetchJSON('data/chfa-lihtc.json');
+          if (localGj && localGj.features && localGj.features.length) {
+            gj = localGj;
+            console.log('✓ LIHTC: loaded from local data/chfa-lihtc.json');
+          }
+        } catch(e) { console.warn('Local LIHTC file unavailable:', e.message); }
+      }
+      // Tier 4: GitHub Pages backup
+      if (!gj) {
+        try {
+          const backupGj = await fetchJSON(GITHUB_PAGES_BASE + '/data/chfa-lihtc.json');
+          if (backupGj && backupGj.features && backupGj.features.length) {
+            gj = backupGj;
+            console.log('✓ LIHTC: loaded from GitHub Pages backup');
+          }
+        } catch(e) { console.warn('GitHub Pages backup unavailable:', e.message); }
+      }
+      // Tier 5: embedded
+      if (!gj) { gj = FALLBACK_LIHTC; console.warn('LIHTC: using embedded fallback'); }
+
+      const group = L.featureGroup([], { pane: 'pointsPane2' }).addTo(map);
+      let totalUnits = 0, qctCount = 0, ddaCount = 0;
+
+      gj.features.forEach(f => {
+        const p = f.properties || {};
+        const [lng, lat] = f.geometry.coordinates;
+        if (!lat || !lng) return;
+        const units = parseInt(p.LI_UNITS || p.N_UNITS || 0, 10);
+        const r = Math.min(Math.max(Math.sqrt(units || 10) * 1.4, 5), 14);
+        const color = p.QCT ? '#34d399' : p.DDA ? '#fbbf24' : '#5ec8f8';
+        const marker = L.circleMarker([lat, lng], {
+          pane: 'pointsPane2', radius: r,
+          fillColor: color, color: 'rgba(0,0,0,0.4)',
+          weight: 1, opacity: 1, fillOpacity: 0.85
+        });
+        const nm   = p.PROJECT || p.PROJ_NM || 'LIHTC Project';
+        const city = p.PROJ_CTY || p.STD_CITY || '';
+        const yr   = p.YR_PIS   ? ` · ${p.YR_PIS}` : '';
+        const unitsStr = units ? ` · ${units} units` : '';
+        marker.bindPopup(`
+          <div style="min-width:200px;font-size:13px;">
+            <div style="font-weight:800;font-size:14px;margin-bottom:4px;">${nm}</div>
+            ${city ? `<div style="opacity:.8;margin-bottom:6px;">${city}, CO</div>` : ''}
+            <div>Units: <strong>${units || '—'}</strong></div>
+            <div>Credit: ${p.CREDIT || '—'}</div>
+            <div>Year: ${p.YR_PIS || '—'}</div>
+            <div style="margin-top:6px;font-size:11px;opacity:.6;">
+              ${p.QCT ? '✓ QCT ' : ''}${p.DDA ? '✓ DDA' : ''}
+            </div>
+          </div>`);
+        marker.bindTooltip(`<strong>${nm}</strong>${city ? '<br>' + city : ''}${yr}${unitsStr}`,
+          { sticky: false, offset: [8, 0], opacity: 0.95, direction: 'right' });
+        marker.addTo(group);
+        totalUnits += units;
+        if (p.QCT) qctCount++;
+        if (p.DDA) ddaCount++;
+      });
+
+      const shown = gj.features.length;
+      setStatus(statusEl, `${shown} LIHTC projects ✓`, 'ok');
+
+      const fmt = n => n.toLocaleString();
+      const qi = $id('kpi-total'); if (qi) qi.textContent = fmt(shown);
+      const uu = $id('kpi-units'); if (uu) uu.textContent = fmt(totalUnits);
+      const qk = $id('kpi-qct');   if (qk) qk.textContent = fmt(qctCount);
+      const dk = $id('kpi-dda');   if (dk) dk.textContent = fmt(ddaCount);
+    }
+
+    /* Layer toggles */
+    const chkQCT = $id('layerQCT');
+    const chkDDA = $id('layerDDA');
+    async function syncQCT() {
+      if (!chkQCT) return;
+      if (chkQCT.checked && !qctLayer) await ensureQCT();
+      if (qctLayer) chkQCT.checked ? qctLayer.addTo(map) : map.removeLayer(qctLayer);
+    }
+    async function syncDDA() {
+      if (!chkDDA) return;
+      if (chkDDA.checked && !ddaLayer) await ensureDDA();
+      if (ddaLayer) chkDDA.checked ? ddaLayer.addTo(map) : map.removeLayer(ddaLayer);
+    }
+    if (chkQCT) chkQCT.addEventListener('change', syncQCT);
+    if (chkDDA) chkDDA.addEventListener('change', syncDDA);
+
+    await loadLIHTC();
+
+    setTimeout(() => map.invalidateSize(), 300);
+    window.addEventListener('resize', () => map.invalidateSize());
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+  </script>
+</body>
+</html>

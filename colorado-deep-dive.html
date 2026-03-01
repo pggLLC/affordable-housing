@@ -950,9 +950,11 @@ h3 { font-size: 1.05rem; font-weight: 700; }
   }
 
   const CO_PLACES_URL    = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4';
+  const CHFA_LIHTC_LAYER = 'https://gis.chfainfo.com/arcgis/rest/services/LIHTC/FeatureServer/0';
   const HUD_LIHTC_LAYER  = 'https://egis.hud.gov/arcgis/rest/services/affht/AffhtMapService/MapServer/30';
   const QCT_LAYER        = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Qualified_Census_Tracts_2026/FeatureServer/0';
   const DDA_LAYER        = 'https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Difficult_Development_Areas_2026/FeatureServer/0';
+  const GITHUB_PAGES_BASE = 'https://pggllc.github.io/affordable-housing';
 
   function styleState()  { return { color: 'rgba(255,255,255,0.80)', weight: 3,   fill: false }; }
   function styleCounty() { return { color: 'rgba(255,255,255,0.45)', weight: 1.2, fill: false }; }
@@ -1260,14 +1262,62 @@ h3 { font-size: 1.05rem; font-weight: 700; }
     async function loadLIHTC() {
       setStatus(statusEl, 'Loading LIHTC projects…', 'info');
       let gj = null;
+      let lihtcSource = '';
+      // Tier 1: CHFA API
       try {
-        gj = await arcgisQuery(HUD_LIHTC_LAYER, "(PROJ_ST='CO') OR (STD_ST='CO')", '*');
-        if (!gj.features.length) throw new Error('Empty result from HUD');
-        console.log('✓ LIHTC: loaded from HUD API');
+        gj = await arcgisQuery(CHFA_LIHTC_LAYER, "STATE='CO'", '*');
+        if (!gj.features.length) throw new Error('Empty result from CHFA');
+        lihtcSource = 'CHFA API';
+        console.log('✓ LIHTC: loaded from CHFA API');
       } catch(e) {
-        console.warn('HUD LIHTC API unavailable, using embedded data:', e.message);
-        gj = FALLBACK_LIHTC;
+        console.warn('CHFA LIHTC API unavailable:', e.message);
+        gj = null;
       }
+      // Tier 2: HUD API
+      if (!gj) {
+        try {
+          gj = await arcgisQuery(HUD_LIHTC_LAYER, "(PROJ_ST='CO') OR (STD_ST='CO')", '*');
+          if (!gj.features.length) throw new Error('Empty result from HUD');
+          lihtcSource = 'HUD API';
+          console.log('✓ LIHTC: loaded from HUD API');
+        } catch(e) {
+          console.warn('HUD LIHTC API unavailable:', e.message);
+          gj = null;
+        }
+      }
+      // Tier 3: local data file
+      if (!gj) {
+        try {
+          const localGj = await fetchJSON('data/chfa-lihtc.json');
+          if (localGj && localGj.features && localGj.features.length) {
+            gj = localGj;
+            lihtcSource = 'local file';
+            console.log('✓ LIHTC: loaded from local data/chfa-lihtc.json');
+          }
+        } catch(e) {
+          console.warn('Local LIHTC file unavailable:', e.message);
+        }
+      }
+      // Tier 4: GitHub Pages backup
+      if (!gj) {
+        try {
+          const backupGj = await fetchJSON(GITHUB_PAGES_BASE + '/data/chfa-lihtc.json');
+          if (backupGj && backupGj.features && backupGj.features.length) {
+            gj = backupGj;
+            lihtcSource = 'GitHub Pages backup';
+            console.log('✓ LIHTC: loaded from GitHub Pages backup');
+          }
+        } catch(e) {
+          console.warn('GitHub Pages LIHTC backup unavailable:', e.message);
+        }
+      }
+      // Tier 5: embedded fallback
+      if (!gj) {
+        gj = FALLBACK_LIHTC;
+        lihtcSource = 'embedded fallback';
+        console.warn('LIHTC: using embedded fallback data');
+      }
+      console.log(`LIHTC source: ${lihtcSource}`);
       lihtcAll = gj;
       renderLIHTC();
     }
@@ -1320,11 +1370,24 @@ h3 { font-size: 1.05rem; font-weight: 700; }
 
     async function ensureQCT() {
       if (qctLoaded) return; qctLoaded = true;
+      // Tier 1: local data file (no API dependency)
+      try {
+        const localGj = await fetchJSON('data/qct-colorado.json');
+        if (localGj && localGj.features && localGj.features.length) {
+          qctLayer = makeOverlayLayer(localGj, styleQCT, 'QCT 2026');
+          console.log('✓ QCT: loaded from local data/qct-colorado.json');
+          return;
+        }
+      } catch(e) {
+        console.warn('Local QCT file unavailable:', e.message);
+      }
+      // Tier 2: HUD API
       try {
         const gj = await tryLoadFromAPI(QCT_LAYER, "STATEFP='08'");
         qctLayer = makeOverlayLayer(gj, styleQCT, 'QCT 2026');
         console.log('✓ QCT: loaded from API');
       } catch(_) {
+        // Tier 3: embedded fallback
         console.warn('QCT API unavailable, using embedded data');
         qctLayer = makeOverlayLayer(FALLBACK_QCT, styleQCT, 'QCT 2026');
       }
@@ -1332,11 +1395,24 @@ h3 { font-size: 1.05rem; font-weight: 700; }
 
     async function ensureDDA() {
       if (ddaLoaded) return; ddaLoaded = true;
+      // Tier 1: local data file (no API dependency)
+      try {
+        const localGj = await fetchJSON('data/dda-colorado.json');
+        if (localGj && localGj.features && localGj.features.length) {
+          ddaLayer = makeOverlayLayer(localGj, styleDDA, 'DDA 2026');
+          console.log('✓ DDA: loaded from local data/dda-colorado.json');
+          return;
+        }
+      } catch(e) {
+        console.warn('Local DDA file unavailable:', e.message);
+      }
+      // Tier 2: HUD API
       try {
         const gj = await tryLoadFromAPI(DDA_LAYER, "STATEFP='08'");
         ddaLayer = makeOverlayLayer(gj, styleDDA, 'DDA 2026');
         console.log('✓ DDA: loaded from API');
       } catch(_) {
+        // Tier 3: embedded fallback
         console.warn('DDA API unavailable, using embedded data');
         ddaLayer = makeOverlayLayer(FALLBACK_DDA, styleDDA, 'DDA 2026');
       }
