@@ -1,0 +1,355 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Aurora Metro DDA",
+        "DDATYPE": "Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.15,
+              39.55
+            ],
+            [
+              -104.67,
+              39.55
+            ],
+            [
+              -104.67,
+              39.98
+            ],
+            [
+              -105.15,
+              39.98
+            ],
+            [
+              -105.15,
+              39.55
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Boulder-Broomfield DDA",
+        "DDATYPE": "Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.35,
+              39.95
+            ],
+            [
+              -104.98,
+              39.95
+            ],
+            [
+              -104.98,
+              40.15
+            ],
+            [
+              -105.35,
+              40.15
+            ],
+            [
+              -105.35,
+              39.95
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Fort Collins DDA",
+        "DDATYPE": "Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.2,
+              40.52
+            ],
+            [
+              -104.98,
+              40.52
+            ],
+            [
+              -104.98,
+              40.66
+            ],
+            [
+              -105.2,
+              40.66
+            ],
+            [
+              -105.2,
+              40.52
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Eagle County DDA",
+        "DDATYPE": "High-Cost Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -107.18,
+              39.44
+            ],
+            [
+              -106.29,
+              39.44
+            ],
+            [
+              -106.29,
+              39.74
+            ],
+            [
+              -107.18,
+              39.74
+            ],
+            [
+              -107.18,
+              39.44
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Summit County DDA",
+        "DDATYPE": "High-Cost Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -106.38,
+              39.38
+            ],
+            [
+              -105.73,
+              39.38
+            ],
+            [
+              -105.73,
+              39.66
+            ],
+            [
+              -106.38,
+              39.66
+            ],
+            [
+              -106.38,
+              39.38
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Pitkin County DDA (Aspen)",
+        "DDATYPE": "High-Cost Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -107.26,
+              39.12
+            ],
+            [
+              -106.68,
+              39.12
+            ],
+            [
+              -106.68,
+              39.38
+            ],
+            [
+              -107.26,
+              39.38
+            ],
+            [
+              -107.26,
+              39.12
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "San Miguel County DDA (Telluride)",
+        "DDATYPE": "High-Cost Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -108.2,
+              37.82
+            ],
+            [
+              -107.38,
+              37.82
+            ],
+            [
+              -107.38,
+              38.15
+            ],
+            [
+              -108.2,
+              38.15
+            ],
+            [
+              -108.2,
+              37.82
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Routt County DDA (Steamboat)",
+        "DDATYPE": "High-Cost Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -107.28,
+              40.25
+            ],
+            [
+              -106.46,
+              40.25
+            ],
+            [
+              -106.46,
+              40.74
+            ],
+            [
+              -107.28,
+              40.74
+            ],
+            [
+              -107.28,
+              40.25
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Garfield County DDA",
+        "DDATYPE": "Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -108.1,
+              39.3
+            ],
+            [
+              -107.06,
+              39.3
+            ],
+            [
+              -107.06,
+              39.75
+            ],
+            [
+              -108.1,
+              39.75
+            ],
+            [
+              -108.1,
+              39.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "La Plata County DDA (Durango)",
+        "DDATYPE": "Non-Metropolitan",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -108.12,
+              37.06
+            ],
+            [
+              -107.3,
+              37.06
+            ],
+            [
+              -107.3,
+              37.58
+            ],
+            [
+              -108.12,
+              37.58
+            ],
+            [
+              -108.12,
+              37.06
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,950 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Globeville QCT",
+        "GEOID": "08031006700",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105,
+              39.772
+            ],
+            [
+              -104.94,
+              39.772
+            ],
+            [
+              -104.94,
+              39.79
+            ],
+            [
+              -105,
+              39.79
+            ],
+            [
+              -105,
+              39.772
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Five Points QCT",
+        "GEOID": "08031007700",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.982,
+              39.745
+            ],
+            [
+              -104.94,
+              39.745
+            ],
+            [
+              -104.94,
+              39.768
+            ],
+            [
+              -104.982,
+              39.768
+            ],
+            [
+              -104.982,
+              39.745
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Sun Valley QCT",
+        "GEOID": "08031006800",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.01,
+              39.72
+            ],
+            [
+              -104.975,
+              39.72
+            ],
+            [
+              -104.975,
+              39.74
+            ],
+            [
+              -105.01,
+              39.74
+            ],
+            [
+              -105.01,
+              39.72
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Montbello QCT",
+        "GEOID": "08031004601",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.955,
+              39.76
+            ],
+            [
+              -104.91,
+              39.76
+            ],
+            [
+              -104.91,
+              39.81
+            ],
+            [
+              -104.955,
+              39.81
+            ],
+            [
+              -104.955,
+              39.76
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Westwood QCT",
+        "GEOID": "08031007400",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.05,
+              39.68
+            ],
+            [
+              -104.995,
+              39.68
+            ],
+            [
+              -104.995,
+              39.718
+            ],
+            [
+              -105.05,
+              39.718
+            ],
+            [
+              -105.05,
+              39.68
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Villa Park QCT",
+        "GEOID": "08031008200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.03,
+              39.73
+            ],
+            [
+              -104.995,
+              39.73
+            ],
+            [
+              -104.995,
+              39.755
+            ],
+            [
+              -105.03,
+              39.755
+            ],
+            [
+              -105.03,
+              39.73
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Barnum QCT",
+        "GEOID": "08031008500",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.043,
+              39.7
+            ],
+            [
+              -105,
+              39.7
+            ],
+            [
+              -105,
+              39.725
+            ],
+            [
+              -105.043,
+              39.725
+            ],
+            [
+              -105.043,
+              39.7
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Swansea QCT",
+        "GEOID": "08031009100",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.966,
+              39.76
+            ],
+            [
+              -104.93,
+              39.76
+            ],
+            [
+              -104.93,
+              39.785
+            ],
+            [
+              -104.966,
+              39.785
+            ],
+            [
+              -104.966,
+              39.76
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Denver-Capitol Hill QCT",
+        "GEOID": "08031003200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.975,
+              39.73
+            ],
+            [
+              -104.94,
+              39.73
+            ],
+            [
+              -104.94,
+              39.748
+            ],
+            [
+              -104.975,
+              39.748
+            ],
+            [
+              -104.975,
+              39.73
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Aurora-Colfax QCT",
+        "GEOID": "08005011020",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.9,
+              39.72
+            ],
+            [
+              -104.84,
+              39.72
+            ],
+            [
+              -104.84,
+              39.75
+            ],
+            [
+              -104.9,
+              39.75
+            ],
+            [
+              -104.9,
+              39.72
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Aurora-East QCT",
+        "GEOID": "08005011800",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.84,
+              39.686
+            ],
+            [
+              -104.78,
+              39.686
+            ],
+            [
+              -104.78,
+              39.71
+            ],
+            [
+              -104.84,
+              39.71
+            ],
+            [
+              -104.84,
+              39.686
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Westminster Federal QCT",
+        "GEOID": "08001012900",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.04,
+              39.843
+            ],
+            [
+              -104.99,
+              39.843
+            ],
+            [
+              -104.99,
+              39.868
+            ],
+            [
+              -105.04,
+              39.868
+            ],
+            [
+              -105.04,
+              39.843
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Colorado Springs-Downtown QCT",
+        "GEOID": "08041003200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.851,
+              38.82
+            ],
+            [
+              -104.8,
+              38.82
+            ],
+            [
+              -104.8,
+              38.858
+            ],
+            [
+              -104.851,
+              38.858
+            ],
+            [
+              -104.851,
+              38.82
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Colorado Springs-East QCT",
+        "GEOID": "08041004100",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.8,
+              38.82
+            ],
+            [
+              -104.73,
+              38.82
+            ],
+            [
+              -104.73,
+              38.86
+            ],
+            [
+              -104.8,
+              38.86
+            ],
+            [
+              -104.8,
+              38.82
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Pueblo-Downtown QCT",
+        "GEOID": "08101000300",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.635,
+              38.238
+            ],
+            [
+              -104.58,
+              38.238
+            ],
+            [
+              -104.58,
+              38.278
+            ],
+            [
+              -104.635,
+              38.278
+            ],
+            [
+              -104.635,
+              38.238
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Pueblo-North QCT",
+        "GEOID": "08101000400",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.64,
+              38.278
+            ],
+            [
+              -104.575,
+              38.278
+            ],
+            [
+              -104.575,
+              38.31
+            ],
+            [
+              -104.64,
+              38.31
+            ],
+            [
+              -104.64,
+              38.278
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Greeley QCT",
+        "GEOID": "08123000500",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.73,
+              40.404
+            ],
+            [
+              -104.67,
+              40.404
+            ],
+            [
+              -104.67,
+              40.44
+            ],
+            [
+              -104.73,
+              40.44
+            ],
+            [
+              -104.73,
+              40.404
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Evans QCT",
+        "GEOID": "08123000700",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.73,
+              40.38
+            ],
+            [
+              -104.68,
+              40.38
+            ],
+            [
+              -104.68,
+              40.404
+            ],
+            [
+              -104.73,
+              40.404
+            ],
+            [
+              -104.73,
+              40.38
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Longmont East QCT",
+        "GEOID": "08013001900",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.12,
+              40.148
+            ],
+            [
+              -105.07,
+              40.148
+            ],
+            [
+              -105.07,
+              40.182
+            ],
+            [
+              -105.12,
+              40.182
+            ],
+            [
+              -105.12,
+              40.148
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Grand Junction QCT",
+        "GEOID": "08077000200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -108.59,
+              39.048
+            ],
+            [
+              -108.53,
+              39.048
+            ],
+            [
+              -108.53,
+              39.085
+            ],
+            [
+              -108.59,
+              39.085
+            ],
+            [
+              -108.59,
+              39.048
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Fort Morgan QCT",
+        "GEOID": "08087000300",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -103.84,
+              40.244
+            ],
+            [
+              -103.78,
+              40.244
+            ],
+            [
+              -103.78,
+              40.272
+            ],
+            [
+              -103.84,
+              40.272
+            ],
+            [
+              -103.84,
+              40.244
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Sterling QCT",
+        "GEOID": "08075001100",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -103.25,
+              40.598
+            ],
+            [
+              -103.195,
+              40.598
+            ],
+            [
+              -103.195,
+              40.634
+            ],
+            [
+              -103.25,
+              40.634
+            ],
+            [
+              -103.25,
+              40.598
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Alamosa QCT",
+        "GEOID": "08003000600",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.91,
+              37.454
+            ],
+            [
+              -105.848,
+              37.454
+            ],
+            [
+              -105.848,
+              37.49
+            ],
+            [
+              -105.91,
+              37.49
+            ],
+            [
+              -105.91,
+              37.454
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Trinidad QCT",
+        "GEOID": "08071000500",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.59,
+              37.16
+            ],
+            [
+              -104.52,
+              37.16
+            ],
+            [
+              -104.52,
+              37.192
+            ],
+            [
+              -104.59,
+              37.192
+            ],
+            [
+              -104.59,
+              37.16
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Walsenburg QCT",
+        "GEOID": "08055000200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -104.805,
+              37.62
+            ],
+            [
+              -104.76,
+              37.62
+            ],
+            [
+              -104.76,
+              37.645
+            ],
+            [
+              -104.805,
+              37.645
+            ],
+            [
+              -104.805,
+              37.62
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Cañon City QCT",
+        "GEOID": "08043000500",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -105.26,
+              38.427
+            ],
+            [
+              -105.2,
+              38.427
+            ],
+            [
+              -105.2,
+              38.456
+            ],
+            [
+              -105.26,
+              38.456
+            ],
+            [
+              -105.26,
+              38.427
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "NAME": "Las Animas QCT",
+        "GEOID": "08011000200",
+        "STATE": "CO"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -103.24,
+              38.058
+            ],
+            [
+              -103.18,
+              38.058
+            ],
+            [
+              -103.18,
+              38.082
+            ],
+            [
+              -103.24,
+              38.082
+            ],
+            [
+              -103.24,
+              38.058
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
